@@ -1,0 +1,17 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Makefile Launch(LLDB)", //DEBUG中出现的名字
+            "preLaunchTask": "Makefile Build", //在launch之前运行的任务名，要跟tasks.json中的"label"大小写一致
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceRoot}/main", //需要运行的是当前打开文件的目录中，名字和当前文件相同，但扩展名为exe的程序
+            "args": [],
+            "cwd": "${workspaceFolder}", //当前工作路径：当前文件所在的工作空间
+        }
+    ]
+}
