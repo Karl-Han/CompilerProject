@@ -32,3 +32,4 @@
 *.app
 /**/*.dSYM
 /**/main
+/**/.DS_Store

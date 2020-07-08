@@ -465,11 +465,31 @@ char *yytext;
 // Declaration
 // Will be copy to lex.yy.c directly
 #include "token.h"
+
+#define MAX_CHILDREN 4
+
+typedef struct {
+    Token token;
+
+    int num;
+    char* str;
+    TreeNode* sibling;
+    TreeNode*   children[MAX_CHILDREN];
+}TreeNode;
+
 int colno = 0, lineno= 1;
+
 Token getSymbol(char);
 void comment();
 void lex_error(char*);
 void newline();
+
+void init_sib_child(TreeNode*);
+// TreeNode section
+TreeNode* getTreeNode(Token);
+TreeNode* getTreeNode_number(Token, int);
+TreeNode* getTreeNode_identifier(Token, char*);
+
 /*
  * Token_if = 128, Token_else, Token_int, 
  * 	Token_void, Token_while, Token_return,
@@ -485,7 +505,7 @@ void newline();
  * Definition
  * For symbols with specific meaning used afterwards
  */
-#line 489 "scanner.c"
+#line 509 "scanner.c"
 
 #define INITIAL 0
 
@@ -667,9 +687,9 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 33 "scanner.l"
+#line 53 "scanner.l"
 
-#line 673 "scanner.c"
+#line 693 "scanner.c"
 
 	if ( !(yy_init) )
 		{
@@ -754,70 +774,70 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 34 "scanner.l"
-{colno += yyleng; return Token_number;}
+#line 54 "scanner.l"
+{TreeNode* tn = getTreeNode(Token_number); yylval = tn; colno += yyleng; return Token_number;}
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 35 "scanner.l"
-{colno += yyleng; return Token_identifier;}
+#line 55 "scanner.l"
+{TreeNode* tn = getTreeNode(Token_identifier); yylval = tn;colno += yyleng; return Token_identifier;}
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 36 "scanner.l"
+#line 56 "scanner.l"
 {colno += yyleng; /* Do nothing */}
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 37 "scanner.l"
-{colno += yyleng; return getSymbol(yytext[0]);}
+#line 57 "scanner.l"
+{Token token = getSymbol(yytext[0]);TreeNode* tn = getTreeNode(token); yylval = tn;colno += yyleng; return token}
 	YY_BREAK
 case 5:
 /* rule 5 can match eol */
 YY_RULE_SETUP
-#line 38 "scanner.l"
+#line 58 "scanner.l"
 {/* Do nothing */ newline();}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 39 "scanner.l"
-{colno += yyleng; return Token_lessEqual;}
+#line 59 "scanner.l"
+{TreeNode* tn = getTreeNode(Token_lessEqual); yylval = tn;colno += yyleng; return Token_lessEqual;}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 40 "scanner.l"
-{colno += yyleng; return Token_moreEqual;}
+#line 60 "scanner.l"
+{TreeNode* tn = getTreeNode(Token_moreEqual); yylval = tn;colno += yyleng; return Token_moreEqual;}
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 41 "scanner.l"
-{colno += yyleng; return Token_equal;}
+#line 61 "scanner.l"
+{TreeNode* tn = getTreeNode(Token_equal); yylval = tn;colno += yyleng; return Token_equal;}
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 42 "scanner.l"
-{colno += yyleng; return Token_noEqual;}
+#line 62 "scanner.l"
+{TreeNode* tn = getTreeNode(Token_noEqual); yylval = tn;colno += yyleng; return Token_noEqual;}
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 43 "scanner.l"
+#line 63 "scanner.l"
 {colno += yyleng; comment(); return Token_comment;}
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
-#line 44 "scanner.l"
+#line 64 "scanner.l"
 {return 0;}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 45 "scanner.l"
+#line 65 "scanner.l"
 {colno += yyleng; lex_error(yytext);}
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 47 "scanner.l"
+#line 67 "scanner.l"
 ECHO;
 	YY_BREAK
-#line 821 "scanner.c"
+#line 841 "scanner.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -1812,9 +1832,54 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 47 "scanner.l"
+#line 67 "scanner.l"
 
 
+void init_sib_child(TreeNode* tn){
+    tn->sibling = NULL;
+    for(size_t i = 0; i < MAX_CHILDREN; i++){
+        tn->children[i] = NULL;
+    }
+}
+
+TreeNode* getTreeNode(Token token){
+    // number iden symbol, lessE, moreE, equal, noE,
+    // SYMBOL      ([+-*\<>=;,(){}[]])
+    TreeNode* tn = (TreeNode*)malloc(sizeof(TreeNode));
+
+    tn->token = token;
+    tn->num = 0;
+    tn->str = NULL;
+    init_sib_child(tn);
+}
+
+TreeNode* getTreeNode_number(Token token, int num){
+    TreeNode* tn = (TreeNode*)malloc(sizeof(TreeNode));
+
+    if(token != Token_number){
+        lex_error("This is not a number.(getTreeNode_number)");
+        return NULL;
+    }
+
+    tn->token = token;
+    tn->num = num;
+    tn->str = null;
+    init_sib_child(tn);
+}
+
+TreeNode* getTreeNode_identifier(Token token, char* str){
+    TreeNode* tn = (TreeNode*)malloc(sizeof(TreeNode));
+
+    if(token != Token_identifier){
+        lex_error("This is not a identifier.(getTreeNode_identifier)");
+        return NULL;
+    }
+
+    tn->token = token;
+    tn->num = 0;
+    tn->str = strdup(str);
+    init_sib_child(tn);
+}
 
 void newline(){
     lineno++;
@@ -1822,7 +1887,7 @@ void newline(){
 }
 
 void lex_error(char* str){
-    printf("Lex ERROR in line %d, column %d. %s\n", lineno, colno, str);
+    printf("Lex ERROR in line %d, column %d. %s\n", str);
 }
 
 int main(){

@@ -2,11 +2,31 @@
 // Declaration
 // Will be copy to lex.yy.c directly
 #include "token.h"
+
+#define MAX_CHILDREN 4
+
+typedef struct {
+    Token token;
+
+    int num;
+    char* str;
+    TreeNode* sibling;
+    TreeNode*   children[MAX_CHILDREN];
+}TreeNode;
+
 int colno = 0, lineno= 1;
+
 Token getSymbol(char);
 void comment();
 void lex_error(char*);
 void newline();
+
+void init_sib_child(TreeNode*);
+// TreeNode section
+TreeNode* getTreeNode(Token);
+TreeNode* getTreeNode_number(Token, int);
+TreeNode* getTreeNode_identifier(Token, char*);
+
 /*
  * Token_if = 128, Token_else, Token_int, 
  * 	Token_void, Token_while, Token_return,
@@ -31,19 +51,71 @@ SPACE       ([ \t]+)
 SYMBOL      ([+\-*/<>=;,(){}\[\]])
 
 %%
-{NUMBER}        {colno += yyleng; return Token_number;}
-{IDENTIFIER}    {colno += yyleng; return Token_identifier;}
 {SPACE}         {colno += yyleng; /* Do nothing */}
-{SYMBOL}        {colno += yyleng; return getSymbol(yytext[0]);}
 [\n]            {/* Do nothing */ newline();}
-"<="            {colno += yyleng; return Token_lessEqual;}
-">="            {colno += yyleng; return Token_moreEqual;}
-"=="            {colno += yyleng; return Token_equal;}
-"!="            {colno += yyleng; return Token_noEqual;}
+{SYMBOL}        {Token token = getSymbol(yytext[0]);TreeNode* tn = getTreeNode(token); yylval = tn;colno += yyleng; return token}
+"int"           {TreeNode* tn = getTreeNode(Token_int); yylval = tn;colno += yyleng; return Token_lessEqual;}
+"void"          {TreeNode* tn = getTreeNode(Token_void); yylval = tn;colno += yyleng; return Token_lessEqual;}
+"if"            {TreeNode* tn = getTreeNode(Token_if); yylval = tn;colno += yyleng; return Token_lessEqual;}
+"else"          {TreeNode* tn = getTreeNode(Token_else); yylval = tn;colno += yyleng; return Token_lessEqual;}
+"while"         {TreeNode* tn = getTreeNode(Token_while); yylval = tn;colno += yyleng; return Token_lessEqual;}
+"return"        {TreeNode* tn = getTreeNode(Token_return); yylval = tn;colno += yyleng; return Token_lessEqual;}
+"<="            {TreeNode* tn = getTreeNode(Token_lessEqual); yylval = tn;colno += yyleng; return Token_lessEqual;}
+">="            {TreeNode* tn = getTreeNode(Token_moreEqual); yylval = tn;colno += yyleng; return Token_moreEqual;}
+"=="            {TreeNode* tn = getTreeNode(Token_equal); yylval = tn;colno += yyleng; return Token_equal;}
+"!="            {TreeNode* tn = getTreeNode(Token_noEqual); yylval = tn;colno += yyleng; return Token_noEqual;}
 "/*"            {colno += yyleng; comment(); return Token_comment;}
+{NUMBER}        {TreeNode* tn = getTreeNode(Token_number); yylval = tn; colno += yyleng; return Token_number;}
+{IDENTIFIER}    {TreeNode* tn = getTreeNode(Token_identifier); yylval = tn;colno += yyleng; return Token_identifier;}
 <<EOF>>         {return 0;}
 .               {colno += yyleng; lex_error(yytext);}
+
 %%
+void init_sib_child(TreeNode* tn){
+    tn->sibling = NULL;
+    for(size_t i = 0; i < MAX_CHILDREN; i++){
+        tn->children[i] = NULL;
+    }
+}
+
+TreeNode* getTreeNode(Token token){
+    // number iden symbol, lessE, moreE, equal, noE,
+    // SYMBOL      ([+-*\<>=;,(){}[]])
+    TreeNode* tn = (TreeNode*)malloc(sizeof(TreeNode));
+
+    tn->token = token;
+    tn->num = 0;
+    tn->str = NULL;
+    init_sib_child(tn);
+}
+
+TreeNode* getTreeNode_number(Token token, int num){
+    TreeNode* tn = (TreeNode*)malloc(sizeof(TreeNode));
+
+    if(token != Token_number){
+        lex_error("This is not a number.(getTreeNode_number)");
+        return NULL;
+    }
+
+    tn->token = token;
+    tn->num = num;
+    tn->str = null;
+    init_sib_child(tn);
+}
+
+TreeNode* getTreeNode_identifier(Token token, char* str){
+    TreeNode* tn = (TreeNode*)malloc(sizeof(TreeNode));
+
+    if(token != Token_identifier){
+        lex_error("This is not a identifier.(getTreeNode_identifier)");
+        return NULL;
+    }
+
+    tn->token = token;
+    tn->num = 0;
+    tn->str = strdup(str);
+    init_sib_child(tn);
+}
 
 void newline(){
     lineno++;
@@ -51,7 +123,7 @@ void newline(){
 }
 
 void lex_error(char* str){
-    printf("Lex ERROR in line %d, column %d. %s\n", lineno, colno, str);
+    printf("Lex ERROR in line %d, column %d. %s\n", str);
 }
 
 int main(){
