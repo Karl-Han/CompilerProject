@@ -40,3 +40,4 @@ lex.yy.c
 /**/*.dot
 /**/*.html
 /**/*.jpg
+/**/*.xml

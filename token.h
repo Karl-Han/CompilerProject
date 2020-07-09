@@ -3,7 +3,7 @@
 
 #define MAX_CHILDREN 4
 typedef struct _TreeNode {
-    yytoken_kind_t token;
+    int token;
 
     int num;
     char* str;

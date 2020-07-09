@@ -203,6 +203,7 @@ arg_list_sub    :   ',' exp arg_list_sub            {TreeNode* tn = $2; tn->sibl
 %%
 
 int main() {
-    TreeNode* tn = yyparse();
+    yyparse();
+    TreeNode* tn = yylval.tn;
     return 0;
 }
