@@ -1,4 +1,4 @@
-CFLAGS = -g
+CFLAGS = -g -m64
 # FLEX_FLAGS = -DLEX_DEBUG
 # OBJ = main scanner.c
 # 

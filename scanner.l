@@ -13,11 +13,6 @@ void yyerror(const char*);
 void newline();
 // char* token2string(yytoken_kind_t t);
 
-void init_sib_child(TreeNode*);
-// TreeNode section
-TreeNode* getTreeNode(yytoken_kind_t);
-TreeNode* getTreeNode_number(yytoken_kind_t, int);
-TreeNode* getTreeNode_identifier(yytoken_kind_t, char*);
 
 /*
  * Token_if = 128, Token_else, Token_int, 
@@ -70,7 +65,7 @@ void init_sib_child(TreeNode* tn){
     }
 }
 
-TreeNode* getTreeNode(yytoken_kind_t token){
+TreeNode* getTreeNode(int token){
     // number iden symbol, lessE, moreE, equal, noE,
     // SYMBOL      ([+-*\<>=;,(){}[]])
     TreeNode* tn = (TreeNode*)malloc(sizeof(TreeNode));
@@ -82,7 +77,7 @@ TreeNode* getTreeNode(yytoken_kind_t token){
     return tn;
 }
 
-TreeNode* getTreeNode_number(yytoken_kind_t token, int num){
+TreeNode* getTreeNode_number(int token, int num){
     TreeNode* tn = (TreeNode*)malloc(sizeof(TreeNode));
 
     if(token != Token_number){
@@ -97,7 +92,7 @@ TreeNode* getTreeNode_number(yytoken_kind_t token, int num){
     return tn;
 }
 
-TreeNode* getTreeNode_identifier(yytoken_kind_t token, char* str){
+TreeNode* getTreeNode_identifier(int token, char* str){
     TreeNode* tn = (TreeNode*)malloc(sizeof(TreeNode));
 
     if(token != Token_identifier){
@@ -158,7 +153,7 @@ void comment(){
     }
 }
 
-yytoken_kind_t getSymbol(char ch){
+int getSymbol(char ch){
     // SYMBOL      ([+\-*/<>=;,(){}\[\]])
     switch(ch){
         case '+':
