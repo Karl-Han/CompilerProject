@@ -18,6 +18,7 @@
 
 %}
 
+%debug
 
 %union {
     void* tn;

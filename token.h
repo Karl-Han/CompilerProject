@@ -1,7 +1,6 @@
 #ifndef __token_h
 #define __token_h
 
-
 #define MAX_CHILDREN 4
 typedef struct _TreeNode {
     yytoken_kind_t token;

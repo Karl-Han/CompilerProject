@@ -46,17 +46,17 @@ SYMBOL      ([+\-*/<>=;,(){}\[\]])
 {SPACE}         {colno += yyleng; /* Do nothing */}
 [\n]            {/* Do nothing */ newline();}
 {SYMBOL}        {yytoken_kind_t token = getSymbol(yytext[0]);TreeNode* tn = getTreeNode(token); yylval.tn = tn;colno += yyleng; return token;}
-"int"           {TreeNode* tn = getTreeNode(Token_int); yylval.tn = tn;colno += yyleng; return Token_lessEqual;}
-"void"          {TreeNode* tn = getTreeNode(Token_void); yylval.tn = tn;colno += yyleng; return Token_lessEqual;}
-"if"            {TreeNode* tn = getTreeNode(Token_if); yylval.tn = tn;colno += yyleng; return Token_lessEqual;}
-"else"          {TreeNode* tn = getTreeNode(Token_else); yylval.tn = tn;colno += yyleng; return Token_lessEqual;}
-"while"         {TreeNode* tn = getTreeNode(Token_while); yylval.tn = tn;colno += yyleng; return Token_lessEqual;}
-"return"        {TreeNode* tn = getTreeNode(Token_return); yylval.tn = tn;colno += yyleng; return Token_lessEqual;}
+"int"           {TreeNode* tn = getTreeNode(Token_int); yylval.tn = tn;colno += yyleng; return Token_int;}
+"void"          {TreeNode* tn = getTreeNode(Token_void); yylval.tn = tn;colno += yyleng; return Token_void;}
+"if"            {TreeNode* tn = getTreeNode(Token_if); yylval.tn = tn;colno += yyleng; return Token_if;}
+"else"          {TreeNode* tn = getTreeNode(Token_else); yylval.tn = tn;colno += yyleng; return Token_else;}
+"while"         {TreeNode* tn = getTreeNode(Token_while); yylval.tn = tn;colno += yyleng; return Token_while;}
+"return"        {TreeNode* tn = getTreeNode(Token_return); yylval.tn = tn;colno += yyleng; return Token_return;}
 "<="            {TreeNode* tn = getTreeNode(Token_lessEqual); yylval.tn = tn;colno += yyleng; return Token_lessEqual;}
 ">="            {TreeNode* tn = getTreeNode(Token_moreEqual); yylval.tn = tn;colno += yyleng; return Token_moreEqual;}
 "=="            {TreeNode* tn = getTreeNode(Token_equal); yylval.tn = tn;colno += yyleng; return Token_equal;}
 "!="            {TreeNode* tn = getTreeNode(Token_noEqual); yylval.tn = tn;colno += yyleng; return Token_noEqual;}
-"/*"            {colno += yyleng; comment(); return Token_comment;}
+"/*"            {colno += yyleng; comment();}
 {NUMBER}        {TreeNode* tn = getTreeNode(Token_number); yylval.tn = tn; colno += yyleng; return Token_number;}
 {IDENTIFIER}    {TreeNode* tn = getTreeNode(Token_identifier); yylval.tn = tn;colno += yyleng; return Token_identifier;}
 <<EOF>>         {return 0;}
