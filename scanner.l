@@ -1,18 +1,21 @@
 %{
 // Declaration
 // Will be copy to lex.yy.c directly
+// #include "token.h"
+#include "y.tab.h"
 #include "token.h"
 
 #define MAX_CHILDREN 4
 
-typedef struct {
+struct {
     Token token;
 
     int num;
     char* str;
-    TreeNode* sibling;
-    TreeNode*   children[MAX_CHILDREN];
+    struct TreeNode* sibling;
+    struct TreeNode*   children[MAX_CHILDREN];
 }TreeNode;
+
 
 int colno = 0, lineno= 1;
 
@@ -20,6 +23,7 @@ Token getSymbol(char);
 void comment();
 void lex_error(char*);
 void newline();
+char* token2string(Token t);
 
 void init_sib_child(TreeNode*);
 // TreeNode section
@@ -199,4 +203,9 @@ Token getSymbol(char ch){
             printf("This char is %c\n", ch);
             exit(1);
     }
+}
+
+char* token2string(Token t){
+	char* str_token[] = {"Token_if","Token_else","Token_int","Token_void","Token_while","Token_return","Token_plus","Token_minus","Token_multiply","Token_divide","Token_less","Token_lessEqual","Token_more","Token_moreEqual","Token_equal","Token_noEqual","Token_assign","Token_semicolon","Token_comma","Toekn_smallBracket_left","Token_smallBracket_right","Token_middleBracket_left","Token_middleBracket_right","Token_largeBracket_left","Token_largeBracket_right","Token_number","Token_comment","Token_identifier","Token_space", "Token_func_dec", "Token_compound", "Token_var_dec", "Token_para"};
+	return str_token[t - Token_if];
 }
