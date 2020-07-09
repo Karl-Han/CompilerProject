@@ -1,4 +1,4 @@
-# CFLAGS = -g
+CFLAGS = -g
 # FLEX_FLAGS = -DLEX_DEBUG
 # OBJ = main scanner.c
 # 
@@ -33,7 +33,7 @@ $(TESTOUT): $(TESTFILE) $(OUT)
 	./$(OUT) < $< > $@
 
 $(OUT): $(OBJ)
-	$(CC) -o $(OUT) $(OBJ)
+	$(CC) $(CFLAGS) -o $(OUT) $(OBJ)
 
 lex.yy.c: $(SCANNER) y.tab.c
 	flex $<

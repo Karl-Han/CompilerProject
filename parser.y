@@ -15,24 +15,24 @@
   * Token_func_dec, Token_compound, Token_var_dec, Token_para
   */
 #include "token.h"
+
 %}
 
 
-// %union {
-//     TreeNode* tn;
-//     Token token
-// }
+%union {
+    void* tn;
+}
 
 // %token <Token> Token_identifier
-%token Token_if Token_else Token_int Token_void Token_while Token_return
-%token Token_plus Token_minus Token_multiply Token_divide
-%token Token_less Token_lessEqual Token_more Token_moreEqual
-%token Token_equal Token_noEqual Token_assign Token_semicolon
-%token Token_comma Toekn_smallBracket_left Token_smallBracket_right
-%token Token_middleBracket_left Token_middleBracket_right 
-%token Token_largeBracket_left Token_largeBracket_right
-%token Token_number Token_comment Token_identifier Token_space Token_none
-%token Token_func_dec Token_compound Token_var_dec Token_para
+%token <tn> Token_if Token_else Token_int Token_void Token_while Token_return
+%token <tn> Token_plus Token_minus Token_multiply Token_divide
+%token <tn> Token_less Token_lessEqual Token_more Token_moreEqual
+%token <tn> Token_equal Token_noEqual Token_assign Token_semicolon
+%token <tn> Token_comma Toekn_smallBracket_left Token_smallBracket_right
+%token <tn> Token_middleBracket_left Token_middleBracket_right 
+%token <tn> Token_largeBracket_left Token_largeBracket_right
+%token <tn> Token_number Token_comment Token_identifier Token_space Token_none
+%token <tn> Token_func Token_compound Token_var Token_para Token_call Token_var_dec
 
 %left Token_plus Token_minus
 %left Token_multiply Token_divide
@@ -77,7 +77,7 @@ dec_list        :   declaration dec_list_sub        {TreeNode* tn = $1; tn->sibl
                 ;
 
 dec_list_sub    :   declaration dec_list_sub        {TreeNode* tn = $1; tn->sibling = $2; $$ = tn;}
-                |   /* empty */                     { /* empty */ }
+                |   /* empty */                     { $$ = NULL; }
                 ;
 
 declaration     :   var_dec                         { $$ = $1; }
@@ -137,14 +137,14 @@ selection_st    :   Token_if '(' exp ')' statement  { TreeNode* tn = getTreeNode
                 |   Token_if '(' exp ')' statement Token_else statement{ TreeNode* tn = getTreeNode(Token_if); tn->child[0] = $3; tn->child[1] = $5; tn->child[2] = $7; $$ = tn;}
                 ;
 
-iteration_st    :   Token_while '(' exp ')' statement   {TreeNode* tn = getTreeNode(Token_while); tn->child[0] = $3; tn->child[5]; $$ = tn;}
+iteration_st    :   Token_while '(' exp ')' statement   {TreeNode* tn = getTreeNode(Token_while); tn->child[0] = $3; tn->child[1] = $5; $$ = tn;}
                 ;
 
 return_st       :   Token_return ';'                {TreeNode* tn = getTreeNode(Token_return); $$ = tn;};
                 |   Token_return exp ';'            {TreeNode* tn = getTreeNode(Token_return); tn->child[0] = $2; $$ = tn;};
                 ;
 
-exp             :   var Token_assign exp            {TreeNode* tn = getTreeNode(Token_assign); tn->child[0] = $1; tn->child[3] = $3; $$ = tn;};
+exp             :   var Token_assign exp            {TreeNode* tn = getTreeNode(Token_assign); tn->child[0] = $1; tn->child[1] = $3; $$ = tn;};
                 |   simple_exp                      {$$ = $1;};
                 ;
 
@@ -202,5 +202,6 @@ arg_list_sub    :   ',' exp arg_list_sub            {TreeNode* tn = $2; tn->sibl
 %%
 
 int main() {
-    return yyparse();
+    TreeNode* tn = yyparse();
+    return 0;
 }
