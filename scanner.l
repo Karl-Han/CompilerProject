@@ -59,61 +59,61 @@ SYMBOL      ([+\-*/<>=;,(){}\[\]])
 
 %%
 void init_sib_child(TreeNode* tn){
-    tn->sibling = NULL;
-    for(size_t i = 0; i < MAX_CHILDREN; i++){
-        tn->child[i] = NULL;
-    }
+	tn->sibling = NULL;
+	for(size_t i = 0; i < MAX_CHILDREN; i++){
+		tn->child[i] = NULL;
+	}
 }
 
 TreeNode* getTreeNode(int token){
-    // number iden symbol, lessE, moreE, equal, noE,
-    // SYMBOL      ([+-*\<>=;,(){}[]])
-    TreeNode* tn = (TreeNode*)malloc(sizeof(TreeNode));
+	// number iden symbol, lessE, moreE, equal, noE,
+	// SYMBOL      ([+-*\<>=;,(){}[]])
+	TreeNode* tn = (TreeNode*)malloc(sizeof(TreeNode));
 
-    tn->token = token;
-    tn->num = 0;
-    tn->str = NULL;
-    init_sib_child(tn);
-    return tn;
+	tn->token = token;
+	tn->num = 0;
+	tn->str = NULL;
+	init_sib_child(tn);
+	return tn;
 }
 
 TreeNode* getTreeNode_number(int token, int num){
-    TreeNode* tn = (TreeNode*)malloc(sizeof(TreeNode));
+	TreeNode* tn = (TreeNode*)malloc(sizeof(TreeNode));
 
-    if(token != Token_number){
-        yyerror("This is not a number.(getTreeNode_number)");
-        return NULL;
-    }
+	if(token != Token_number){
+		yyerror("This is not a number.(getTreeNode_number)");
+		return NULL;
+	}
 
-    tn->token = token;
-    tn->num = num;
-    tn->str = NULL;
-    init_sib_child(tn);
-    return tn;
+	tn->token = token;
+	tn->num = num;
+	tn->str = NULL;
+	init_sib_child(tn);
+	return tn;
 }
 
 TreeNode* getTreeNode_identifier(int token, char* str){
-    TreeNode* tn = (TreeNode*)malloc(sizeof(TreeNode));
+	TreeNode* tn = (TreeNode*)malloc(sizeof(TreeNode));
 
-    if(token != Token_identifier){
-        yyerror("This is not a identifier.(getTreeNode_identifier)");
-        return NULL;
-    }
+	if(token != Token_identifier){
+		yyerror("This is not a identifier.(getTreeNode_identifier)");
+		return NULL;
+	}
 
-    tn->token = token;
-    tn->num = 0;
-    tn->str = strdup(str);
-    init_sib_child(tn);
-    return tn;
+	tn->token = token;
+	tn->num = 0;
+	tn->str = strdup(str);
+	init_sib_child(tn);
+	return tn;
 }
 
 void newline(){
-    lineno++;
-    colno = 0;
+	lineno++;
+	colno = 0;
 }
 
 void yyerror(const char* str){
-    printf("Lex ERROR in line %d, column %d. %s\n", lineno, colno, str);
+	printf("Lex ERROR in line %d, column %d. %s\n", lineno, colno, str);
 }
 
 // Wrong because it is old order
@@ -127,69 +127,69 @@ void yyerror(const char* str){
 // }
 
 int yywrap(){
-    return 1;
+	return 1;
 }
 
 void comment(){
-    char ch1, ch2;
-    loop:
-    while((ch1 = input()) != '*' && ch1 != 0){
-        // just skip them
-        if(ch1 == '\0')
-            return;
-        if(ch1 == '\n')
-            newline();
-        else 
-            colno++;
-    }
-    ch2 = input();
-    if(ch2 != '/' && ch2 != 0){
-        ch1 = ch2 = '0';
-        if(ch2 == '\n')
-            newline();
-        else 
-            colno++;
-        goto loop;
-    }
+	char ch1, ch2;
+	loop:
+	while((ch1 = input()) != '*' && ch1 != 0){
+		// just skip them
+		if(ch1 == '\0')
+			return;
+		if(ch1 == '\n')
+			newline();
+		else 
+			colno++;
+	}
+	ch2 = input();
+	if(ch2 != '/' && ch2 != 0){
+		ch1 = ch2 = '0';
+		if(ch2 == '\n')
+			newline();
+		else 
+			colno++;
+		goto loop;
+	}
 }
 
 int getSymbol(char ch){
-    // SYMBOL      ([+\-*/<>=;,(){}\[\]])
-    switch(ch){
-        case '+':
-            return Token_plus;
-        case '-':
-            return Token_minus;
-        case '*':
-            return Token_multiply;
-        case '/':
-            return Token_divide;
-        case '<':
-            return Token_less;
-        case '>':
-            return Token_more;
-        case '=':
-            return Token_assign;
-        case ';':
-            return Token_semicolon;
-        case ',':
-            return Token_comma;
-        case '(':
-            return Toekn_smallBracket_left;
-        case ')':
-            return Token_smallBracket_right;
-        case '[':
-            return Token_middleBracket_left;
-        case ']':
-            return Token_middleBracket_right;
-        case '{':
-            return Token_largeBracket_left;
-        case '}':
-            return Token_largeBracket_left;
-        default:
-            printf("This char is %c\n", ch);
-            exit(1);
-    }
+	// SYMBOL      ([+\-*/<>=;,(){}\[\]])
+	switch(ch){
+		case '+':
+			return Token_plus;
+		case '-':
+			return Token_minus;
+		case '*':
+			return Token_multiply;
+		case '/':
+			return Token_divide;
+		case '<':
+			return Token_less;
+		case '>':
+			return Token_more;
+		case '=':
+			return Token_assign;
+		case ';':
+			return Token_semicolon;
+		case ',':
+			return Token_comma;
+		case '(':
+			return Toekn_smallBracket_left;
+		case ')':
+			return Token_smallBracket_right;
+		case '[':
+			return Token_middleBracket_left;
+		case ']':
+			return Token_middleBracket_right;
+		case '{':
+			return Token_largeBracket_left;
+		case '}':
+			return Token_largeBracket_left;
+		default:
+			printf("This char is %c\n", ch);
+			exit(1);
+	}
 }
 
 // Wrong order

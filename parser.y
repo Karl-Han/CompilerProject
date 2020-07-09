@@ -16,12 +16,14 @@
   */
 #include "token.h"
 #include <stdio.h>
+#define TRAN(x,y) printf("%s reduce to %s", y, x)
 
 %}
 
 %error-verbose
+%verbose
 %define parse.trace
-// %define api.prefix {c}
+
 
 %union {
     void* tn;
@@ -74,7 +76,7 @@
 %type <tn> arg_list_sub    
 
 %%
-program         :   dec_list                        { $$ = $1;}
+program         :   dec_list                        {$$ = $1;}
                 ;
 
 dec_list        :   declaration dec_list_sub        {TreeNode* tn = $1; tn->sibling = $2; $$ = tn;}
@@ -92,8 +94,8 @@ var_dec         :   type Token_identifier Token_semicolon       {TreeNode* tn = 
                 |   type Token_identifier Token_middleBracket_left Token_number Token_middleBracket_right Token_semicolon {TreeNode* tn = getTreeNode(Token_var_dec); tn->child[0] = $1; tn->child[1] = $2; tn->child[2] = $4; $$ = tn;}
                 ;
 
-type            :   Token_int                       { $$ = $1; }
-                |   Token_void                      { $$ = $1; }
+type            :   Token_int                       {TRAN("type", "Token_int"); $$ = $1; }
+                |   Token_void                      {TRAN("type", "Token_void"); $$ = $1; }
                 ;
 
 func_dec        :   type Token_identifier Toekn_smallBracket_left params Token_smallBracket_right    {TreeNode* tn = getTreeNode(Token_func); tn->child[0] = $1; tn->child[1] = $2; tn->child[2] = $4; $$ = tn;}
