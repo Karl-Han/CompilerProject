@@ -1,6 +1,8 @@
 #ifndef __token_h
 #define __token_h
 
+#include <stdlib.h>
+
 #define MAX_CHILDREN 4
 typedef struct _TreeNode {
     int token;
@@ -16,7 +18,6 @@ void init_sib_child(TreeNode*);
 TreeNode* getTreeNode(int);
 TreeNode* getTreeNode_number(int, int);
 TreeNode* getTreeNode_identifier(int, char*);
-
 // typedef enum {
 // 	// for all keyword
 // 	Token_if = 128, Token_else, Token_int, 

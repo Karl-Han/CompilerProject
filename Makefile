@@ -35,7 +35,7 @@ $(TESTOUT): $(TESTFILE) $(OUT)
 $(OUT): $(OBJ)
 	$(CC) $(CFLAGS) -o $(OUT) $(OBJ)
 
-lex.yy.c: $(SCANNER) y.tab.c
+lex.yy.c: $(SCANNER) y.tab.c y.tab.h
 	flex $<
 
 y.tab.c: $(PARSER)

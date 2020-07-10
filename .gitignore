@@ -41,3 +41,5 @@ lex.yy.c
 /**/*.html
 /**/*.jpg
 /**/*.xml
+output
+debug_output
