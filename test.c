@@ -1,5 +1,5 @@
 #include "y.tab.h"
-#include "token.h"
+#include "gen_dot.h"
 
 extern TreeNode* root;
 
@@ -28,6 +28,10 @@ int main(){
     else {
         // everything works fine
         TreeNode* syntax_tree = root;
-        print_node(syntax_tree);
+        // print_node(syntax_tree);
+        // generate_dot(syntax_tree, stdout);
+        char* buf = gen_dot_str(syntax_tree);
+        printf("%s", buf);
     }
+    return 0;
 }

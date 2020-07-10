@@ -10,13 +10,13 @@ CFLAGS = -g -m64
 # 
 # clean:
 # 	rm -rf $(OBJ) main.dSYM
-OUT      = main 
+OUT      = main
 TESTFILE = gcd.c
 SCANNER  = scanner.l
 PARSER   = parser.y
 
 CC       = gcc
-OBJ      = lex.yy.o y.tab.o test.o
+OBJ      = lex.yy.o y.tab.o test.o gen_dot.o
 # TESTOUT  = $(basename $(TESTFILE)).asm
 OUTFILES = lex.yy.c y.tab.c y.tab.h y.output $(OUT)
 

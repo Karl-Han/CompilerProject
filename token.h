@@ -11,6 +11,7 @@ typedef struct _TreeNode {
     char* str;
     struct _TreeNode* sibling;
     struct _TreeNode*   child[MAX_CHILDREN];
+    char* name;
 }TreeNode;
 
 void init_sib_child(TreeNode*);
@@ -18,6 +19,9 @@ void init_sib_child(TreeNode*);
 TreeNode* getTreeNode(int);
 TreeNode* getTreeNode_number(int, int);
 TreeNode* getTreeNode_identifier(int, char*);
+#define tokens_offset 258
+
+extern char* tokens[];
 // typedef enum {
 // 	// for all keyword
 // 	Token_if = 128, Token_else, Token_int, 

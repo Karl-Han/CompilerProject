@@ -17,7 +17,7 @@
 #include "token.h"
 #include <stdio.h>
 // y reduce to x
-#define TRAN(x,y) printf("%s reduce to %s\n", y, x)
+#define TRAN(x,y) // printf("%s reduce to %s\n", y, x)
 // yydebug = 1;
 TreeNode* root;
 

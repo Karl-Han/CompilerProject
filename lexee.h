@@ -19,7 +19,7 @@ typedef struct _LexeeLinkedlist{
 }LexeeLinkedlist;
 
 
-LexeeLinkedlist* lexee = 0;
+extern LexeeLinkedlist* lexee;
 
 void init_linkedlist();
 void insert_lexee(Lexee* l);
