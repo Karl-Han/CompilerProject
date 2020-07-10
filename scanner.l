@@ -111,7 +111,7 @@ void newline(){
 }
 
 void yyerror(const char* str){
-	printf("Lex ERROR in line %d, column %d. %s\n", lineno, colno, str);
+	fprintf(stderr, "Lex ERROR in line %d, column %d. %s\n", lineno, colno, str);
 }
 
 // Wrong because it is old order

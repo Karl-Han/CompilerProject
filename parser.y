@@ -130,7 +130,7 @@ local_dec       :   var_dec local_dec               	{TRAN("local_dec","var_dec 
                 |   /* empty */                     	{TRAN("local_dec","epsilon"); $$ = NULL; }
                 ;
 
-stmt_list       :   statement   stmt_list           	{TRAN("stmt_list","statement stmt_list");TreeNode* tn = $1; tn->sibling = $2; $$ = tn;}
+stmt_list       :   statement   stmt_list           	{TRAN("stmt_list","statement stmt_list");TreeNode* tn = $1; if(tn == NULL) tn = $2; else tn->sibling = $2; $$ = tn;}
                 |   /* empty */                     	{TRAN("stmt_list","epsilon"); $$ = NULL; }
                 ;
 
@@ -213,8 +213,8 @@ arg_list_sub    :   Token_comma exp arg_list_sub            	{TRAN("arg_list_sub
                 ;
 %%
 
-int main() 	{
-    yyparse();
-    TreeNode* tn = yylval.tn;
-    return 0;
-}
+// int main() 	{
+//     yyparse();
+//     TreeNode* tn = root;
+//     return 0;
+// }
