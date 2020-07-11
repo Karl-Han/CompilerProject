@@ -24,6 +24,17 @@ OUTFILES = lex.yy.c y.tab.c y.tab.h y.output $(OUT)
 
 build: $(OUT)
 
+test-all: test test1 test2 test3
+
+test1: ./test_cases/test_case1.c
+	./$(OUT) < $<
+
+test2: ./test_cases/test_case2.c
+	./$(OUT) < $<
+
+test3: ./test_cases/sort.c
+	./$(OUT) < $<
+
 test: $(TESTOUT)
 
 clean:

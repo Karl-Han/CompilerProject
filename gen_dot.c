@@ -47,7 +47,7 @@ char *gen_dot_str(TreeNode *t)
   fseek(f, 0, SEEK_END);
   long fsize = ftell(f);
   fseek(f, 0, SEEK_SET);
-  char *buf = (char *)malloc(fsize +1);
+  char *buf = (char *)malloc(fsize + 1);
   fread(buf, 1, fsize, f);
   buf[fsize] = 0;
   fclose(f);
