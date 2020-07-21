@@ -5,7 +5,7 @@
  * Token_plus, Token_minus, Token_multiply, Token_divide,
  * 	Token_less, Token_lessEqual, Token_more, Token_moreEqual,
  * 	Token_equal, Token_noEqual, Token_assign, Token_semicolon,
- * 	Token_comma, Toekn_smallBracket_left, Token_smallBracket_right,
+ * 	Token_comma, Token_smallBracket_left, Token_smallBracket_right,
  * 	Token_middleBracket_left, Token_middleBracket_right, 
  * 	Token_largeBracket_left, Token_largeBracket_right,
  * Token_number, Token_comment, Token_identifier, Token_space, Token_none
@@ -18,7 +18,7 @@
 #include <stdio.h>
 // y reduce to x
 #define TRAN(x,y) // printf("%s reduce to %s\n", y, x)
-// yydebug = 1;
+yydebug = 1;
 TreeNode* root;
 
 %}
@@ -35,15 +35,42 @@ TreeNode* root;
 }
 
 // %token <Token> Token_identifier
-%token <tn> Token_if Token_else Token_int Token_void Token_while Token_return
-%token <tn> Token_plus Token_minus Token_multiply Token_divide
-%token <tn> Token_less Token_lessEqual Token_more Token_moreEqual
-%token <tn> Token_equal Token_noEqual Token_assign Token_semicolon
-%token <tn> Token_comma Toekn_smallBracket_left Token_smallBracket_right
-%token <tn> Token_middleBracket_left Token_middleBracket_right 
-%token <tn> Token_largeBracket_left Token_largeBracket_right
-%token <tn> Token_number Token_comment Token_identifier Token_space Token_none
-%token <tn> Token_func Token_compound Token_var Token_para Token_call Token_var_dec
+%token <tn> Token_if 
+%token <tn> Token_else 
+%token <tn> Token_int 
+%token <tn> Token_void 
+%token <tn> Token_while 
+%token <tn> Token_return
+%token <tn> Token_plus 
+%token <tn> Token_minus 
+%token <tn> Token_multiply 
+%token <tn> Token_divide
+%token <tn> Token_less 
+%token <tn> Token_lessEqual 
+%token <tn> Token_more 
+%token <tn> Token_moreEqual
+%token <tn> Token_equal 
+%token <tn> Token_noEqual 
+%token <tn> Token_assign 
+%token <tn> Token_semicolon
+%token <tn> Token_comma 
+%token <tn> Token_smallBracket_left 
+%token <tn> Token_smallBracket_right
+%token <tn> Token_middleBracket_left 
+%token <tn> Token_middleBracket_right 
+%token <tn> Token_largeBracket_left 
+%token <tn> Token_largeBracket_right
+%token <tn> Token_number 
+%token <tn> Token_comment 
+%token <tn> Token_identifier 
+%token <tn> Token_space 
+%token <tn> Token_none
+%token <tn> Token_func 
+%token <tn> Token_compound 
+%token <tn> Token_var 
+%token <tn> Token_para 
+%token <tn> Token_call 
+%token <tn> Token_var_dec
 
 %left Token_plus Token_minus
 %left Token_multiply Token_divide
@@ -103,7 +130,7 @@ type            :   Token_int                       	{TRAN("type", "Token_int");
                 |   Token_void                      	{TRAN("type", "Token_void"); $$ = $1; }
                 ;
 
-func_dec        :   type Token_identifier Toekn_smallBracket_left params Token_smallBracket_right    	{TRAN("func_dec","func()");TreeNode* tn = getTreeNode(Token_func); tn->child[0] = $1; tn->child[1] = $2; tn->child[2] = $4; $$ = tn;}
+func_dec        :   type Token_identifier Token_smallBracket_left params Token_smallBracket_right    	{TRAN("func_dec","func()");TreeNode* tn = getTreeNode(Token_func); tn->child[0] = $1; tn->child[1] = $2; tn->child[2] = $4; $$ = tn;}
                 |   compoud_st                      	{TRAN("func_dec","compoud"); $$ = $1; }
                 ;
 
@@ -145,11 +172,11 @@ exp_st          :   exp Token_semicolon                         	{TRAN("exp_st",
                 |   Token_semicolon                             	{TRAN("exp_st",";"); $$ = NULL; }
                 ;
 
-selection_st    :   Token_if Toekn_smallBracket_left exp Token_smallBracket_right statement  	{TRAN("selection_st","if exp"); TreeNode* tn = getTreeNode(Token_if); tn->child[0] = $3; tn->child[1] = $5; $$ = tn;}
-                |   Token_if Toekn_smallBracket_left exp Token_smallBracket_right statement Token_else statement	{TRAN("selection_st","if_else"); TreeNode* tn = getTreeNode(Token_if); tn->child[0] = $3; tn->child[1] = $5; tn->child[2] = $7; $$ = tn;}
+selection_st    :   Token_if Token_smallBracket_left exp Token_smallBracket_right statement  	{TRAN("selection_st","if exp"); TreeNode* tn = getTreeNode(Token_if); tn->child[0] = $3; tn->child[1] = $5; $$ = tn;}
+                |   Token_if Token_smallBracket_left exp Token_smallBracket_right statement Token_else statement	{TRAN("selection_st","if_else"); TreeNode* tn = getTreeNode(Token_if); tn->child[0] = $3; tn->child[1] = $5; tn->child[2] = $7; $$ = tn;}
                 ;
 
-iteration_st    :   Token_while Toekn_smallBracket_left exp Token_smallBracket_right statement   	{TRAN("iteration_st","while exp");TreeNode* tn = getTreeNode(Token_while); tn->child[0] = $3; tn->child[1] = $5; $$ = tn;}
+iteration_st    :   Token_while Token_smallBracket_left exp Token_smallBracket_right statement   	{TRAN("iteration_st","while exp");TreeNode* tn = getTreeNode(Token_while); tn->child[0] = $3; tn->child[1] = $5; $$ = tn;}
                 ;
 
 return_st       :   Token_return Token_semicolon                	{TRAN("return_st","return;");TreeNode* tn = getTreeNode(Token_return); $$ = tn;};
@@ -192,13 +219,13 @@ mulop           :   Token_multiply                  	{TRAN("mulop","*"); $$ = $1
                 |   Token_divide                    	{TRAN("mulop","/"); $$ = $1; }
                 ;
 
-factor          :   Toekn_smallBracket_left exp Token_smallBracket_right                     	{TRAN("factor","(exp)"); $$ = $2; }            
+factor          :   Token_smallBracket_left exp Token_smallBracket_right                     	{TRAN("factor","(exp)"); $$ = $2; }            
                 |   var                             	{TRAN("factor","var"); $$ = $1; }    
                 |   call                            	{TRAN("factor","call"); $$ = $1; }        
                 |   Token_number                    	{TRAN("factor","num"); $$ = $1; }                
                 ;
 
-call            :   Token_identifier Toekn_smallBracket_left args Token_smallBracket_right   	{TRAN("call","id, args"); TreeNode* tn = getTreeNode(Token_call); tn->child[0] = $1; tn->child[1] = $3; $$ = tn;}
+call            :   Token_identifier Token_smallBracket_left args Token_smallBracket_right   	{TRAN("call","id, args"); TreeNode* tn = getTreeNode(Token_call); tn->child[0] = $1; tn->child[1] = $3; $$ = tn;}
                 ;
 
 args            :   arg_list                        	{TRAN("args","arg_list"); $$ = $1; }
