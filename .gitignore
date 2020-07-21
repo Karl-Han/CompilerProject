@@ -43,3 +43,5 @@ lex.yy.c
 /**/*.xml
 output
 debug_output
+patches/
+yacc_lex_playground/
