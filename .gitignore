@@ -43,3 +43,4 @@ lex.yy.c
 /**/*.xml
 output
 debug_output
+patches/
