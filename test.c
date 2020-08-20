@@ -58,6 +58,7 @@ int main()
     // prepare for failure of parsing
 
     int ret = yyparse();
+    TreeNode* syntax_tree;
     if (ret == 1)
     {
         // error occur during parsing
@@ -65,14 +66,11 @@ int main()
         char buf[1024];
         return 1;
     }
-    else
-    {
-        // everything works fine
-        TreeNode *syntax_tree = root;
-        // print_node(syntax_tree);
-        // generate_dot(syntax_tree, stdout);
-        char *buf = gen_dot_str(syntax_tree);
-        printf("%s", buf);
-    }
+    // everything works fine
+    syntax_tree = root;
+    // print_node(syntax_tree);
+    // generate_dot(syntax_tree, stdout);
+    char *buf = gen_dot_str(syntax_tree);
+    printf("%s", buf);
     return 0;
 }

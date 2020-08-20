@@ -54,11 +54,15 @@
 #include <stdio.h>
 // y reduce to x
 #define TRAN(x,y) // printf("%s reduce to %s\n", y, x)
-yydebug = 1;
+// used to enable debug
+// yydebug = 1;
 TreeNode* root;
+
+void reset_yyin();
 
 %}
 
+// verbose when encounter error
 %error-verbose
 %verbose
 %define parse.trace

@@ -6,6 +6,7 @@
 #define MAX_CHILDREN 4
 typedef struct _TreeNode
 {
+    // this int is the same as in y.tab.h
     int token;
     int num;
     char *str;
