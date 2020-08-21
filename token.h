@@ -9,12 +9,14 @@ typedef struct _TreeNode
     // this int is the same as in y.tab.h
     int token;
     int num;
+    // used to store identifier's string
     char *str;
 
     int lineno;
 
     struct _TreeNode *sibling;
     struct _TreeNode *child[MAX_CHILDREN];
+    // used to seperate different token of the same kind
     char *name;
 } TreeNode;
 

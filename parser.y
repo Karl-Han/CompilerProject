@@ -170,8 +170,8 @@ type            :   Token_int                       	{TRAN("type", "Token_int");
                 |   Token_void                      	{TRAN("type", "Token_void"); $$ = $1; }
                 ;
 
-func_dec        :   type Token_identifier Token_smallBracket_left params Token_smallBracket_right    	{TRAN("func_dec","func()");TreeNode* tn = getTreeNode(Token_func); tn->child[0] = $1; tn->child[1] = $2; tn->child[2] = $4; $$ = tn;}
-                |   compoud_st                      	{TRAN("func_dec","compoud"); $$ = $1; }
+func_dec        :   type Token_identifier Token_smallBracket_left params Token_smallBracket_right compoud_st    	{TRAN("func_dec","func()");TreeNode* tn = $2; tn->token = Token_func; tn->child[0] = $1; tn->child[2] = $4; tn->child[3] = $5; $$ = tn;}
+                //|   compoud_st                      	{TRAN("func_dec","compoud"); $$ = $1; }
                 ;
 
 params          :   params_list                     	{TRAN("params","params_list"); $$ = $1; }

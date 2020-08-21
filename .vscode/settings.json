@@ -1,0 +1,24 @@
+{
+    "files.associations": {
+        "**/*.html": "html",
+        "**/templates/**/*.html": "django-html",
+        "**/templates/**/*": "django-txt",
+        "**/requirements{/**,*}.{txt,in}": "pip-requirements",
+        "bitset": "cpp",
+        "cmath": "cpp",
+        "complex": "cpp",
+        "ios": "cpp",
+        "locale": "cpp",
+        "sstream": "cpp",
+        "string": "cpp",
+        "string_view": "cpp",
+        "__config": "cpp",
+        "__cxx_version": "cpp",
+        "__locale": "cpp",
+        "cstdlib": "cpp",
+        "memory_resource": "cpp",
+        "ostream": "cpp",
+        "system_error": "cpp",
+        "typeinfo": "cpp"
+    }
+}

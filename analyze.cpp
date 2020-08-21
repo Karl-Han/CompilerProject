@@ -22,10 +22,8 @@ void traverse(TreeNode *t, void (*preProc)(TreeNode *), void (*postProc)(TreeNod
         {
             // this is not a function node 
             preProc(t);
-            {
-                int i;
-                for (i = 0; i < MAXCHILDREN; i++)
-                    traverse(t->child[i], preProc, postProc);
+            for (int i = 0; i < MAXCHILDREN; i++){
+                traverse(t->child[i], preProc, postProc);
             }
             postProc(t);
             traverse(t->sibling, preProc, postProc);
@@ -33,7 +31,18 @@ void traverse(TreeNode *t, void (*preProc)(TreeNode *), void (*postProc)(TreeNod
         else
         {
             // this is a fucntion node
-            current_env = t->child[1]->str;
+            // set the env to the new func
+            current_env = t->str;
+            func_stack.push_back(current_env);
+            
+            for (int i = 0; i < MAXCHILDREN; i++){
+                traverse(t->child[i], preProc, postProc);
+            }
+            // restore the env
+            current_env = func_stack.back();
+            func_stack.pop_back();
+
+            traverse(t->sibling, preProc, postProc);
         }
     }
 }

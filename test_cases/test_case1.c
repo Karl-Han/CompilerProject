@@ -22,7 +22,6 @@ int main(int num1, void id2, int num3){
     return num1 + num3 + 1;
 }
 
-void proc1(void)
 void proc2(int arr[]){
     /* This is comment and local-declarations test */
     int arr[12];
@@ -31,9 +30,6 @@ void proc2(int arr[]){
     /* statement list test */
     ;;;
     proc1();
-}
-{
-    return 0;
 }
 
 int brr[20];

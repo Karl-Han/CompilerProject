@@ -1,3 +1,4 @@
+#define ANALYZE FALSE
 /* 
  * MIT License
  * 
