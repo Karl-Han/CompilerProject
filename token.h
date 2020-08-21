@@ -10,6 +10,9 @@ typedef struct _TreeNode
     int token;
     int num;
     char *str;
+
+    int lineno;
+
     struct _TreeNode *sibling;
     struct _TreeNode *child[MAX_CHILDREN];
     char *name;

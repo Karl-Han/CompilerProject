@@ -35,8 +35,13 @@
  * 
  */
 
-#include "y.tab.h"
-#include "gen_dot.h"
+extern "C"{
+    #include "y.tab.h"
+    #include "gen_dot.h"
+    int yyparse();
+    char* gen_dot_str(TreeNode* t);
+}
+#include "analyze.h"
 
 extern TreeNode *root;
 
@@ -56,7 +61,6 @@ void print_node(TreeNode *tn)
 int main()
 {
     // prepare for failure of parsing
-
     int ret = yyparse();
     TreeNode* syntax_tree;
     if (ret == 1)
@@ -66,11 +70,15 @@ int main()
         char buf[1024];
         return 1;
     }
+
     // everything works fine
     syntax_tree = root;
     // print_node(syntax_tree);
     // generate_dot(syntax_tree, stdout);
     char *buf = gen_dot_str(syntax_tree);
     printf("%s", buf);
+
+    // buildSymtabs_c(syntax_tree);
+    buildSymtabs(syntax_tree);
     return 0;
 }

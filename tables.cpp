@@ -25,6 +25,11 @@ SymTab* init_symtab(){
 // if not present, insert symbol
 // if present, insert reference
 void sym_insert(SymTab* t, string name, int lineno, int loc, int count, SymType type){
+    if (count == 0 && type != Array)
+    {
+        return ;
+    }
+    
     auto iter = t->m.find(name);
     if (iter == t->m.end())
     {

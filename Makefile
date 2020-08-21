@@ -1,4 +1,4 @@
-CFLAGS = -g -m64
+CFLAGS = -g -m64 -c
 # FLEX_FLAGS = -DLEX_DEBUG
 # OBJ = main scanner.c
 # 
@@ -16,7 +16,9 @@ SCANNER  = scanner.l
 PARSER   = parser.y
 
 CC       = gcc
-OBJ      = lex.yy.o y.tab.o test.o gen_dot.o
+CPP      = g++
+OBJ      = lex.yy.o y.tab.o test.o gen_dot.o 
+OBJCPP	 = analyze.o tables.o
 # TESTOUT  = $(basename $(TESTFILE)).asm
 OUTFILES = lex.yy.c y.tab.c y.tab.h y.output $(OUT)
 
@@ -43,8 +45,14 @@ clean:
 $(TESTOUT): $(TESTFILE) $(OUT)
 	./$(OUT) < $< > $@
 
-$(OUT): $(OBJ)
-	$(CC) $(CFLAGS) -o $(OUT) $(OBJ)
+$(OUT): $(OBJ) $(OBJCPP) lex.yy.c y.tab.c
+	$(CPP) -o $(OUT) $(OBJ) $(OBJCPP)
+
+$(OBJ): lex.yy.c y.tab.c
+	$(CC) $(CFLAGS) *.c
+
+$(OBJCPP): lex.yy.c y.tab.c
+	$(CPP) $(CFLAGS) *.cpp
 
 lex.yy.c: $(SCANNER) y.tab.c y.tab.h
 	flex $<
