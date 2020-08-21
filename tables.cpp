@@ -36,6 +36,7 @@ void sym_insert(SymTab* t, string name, int lineno, int loc, int count, SymType 
         // no such symbol
         // insert new symbol
         SymInfo* si = init_syminfo(name, loc, count, type);
+        memloc++;
         t->m[name] = si;
     }
     else{

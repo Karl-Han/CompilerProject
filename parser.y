@@ -170,7 +170,7 @@ type            :   Token_int                       	{TRAN("type", "Token_int");
                 |   Token_void                      	{TRAN("type", "Token_void"); $$ = $1; }
                 ;
 
-func_dec        :   type Token_identifier Token_smallBracket_left params Token_smallBracket_right compoud_st    	{TRAN("func_dec","func()");TreeNode* tn = $2; tn->token = Token_func; tn->child[0] = $1; tn->child[2] = $4; tn->child[3] = $5; $$ = tn;}
+func_dec        :   type Token_identifier Token_smallBracket_left params Token_smallBracket_right compoud_st    	{TRAN("func_dec","func()");TreeNode* tn = $2; tn->token = Token_func; tn->child[0] = $1; tn->child[2] = $4; tn->child[3] = $6; $$ = tn;}
                 //|   compoud_st                      	{TRAN("func_dec","compoud"); $$ = $1; }
                 ;
 
@@ -186,8 +186,8 @@ params_list_sub :   Token_comma param params_list_sub       	{TRAN("params_list_
                 ;
 
 // different param format is indicated in the child[2]
-param           :   type Token_identifier           	{TRAN("param","var ID");TreeNode* tn = getTreeNode(Token_para); tn->child[0] = $1; tn->child[1] = $2; $$ = tn;}
-                |   type Token_identifier Token_middleBracket_left Token_middleBracket_right      	{TRAN("param","var ID[]");TreeNode* tn = getTreeNode(Token_para); tn->child[0] = $1; tn->child[1] = $2; tn->child[2] = (TreeNode*)0x1; $$ = tn;}
+param           :   type Token_identifier           	{TRAN("param","var ID");TreeNode* tn = getTreeNode(Token_para); TreeNode* id = $2; tn->str = id->str; tn->num = 1; $$ = tn;}
+                |   type Token_identifier Token_middleBracket_left Token_middleBracket_right      	{TRAN("param","var ID[]");TreeNode* tn = getTreeNode(Token_para); TreeNode* id = $2; tn->str = id->str; tn->num = 2; $$ = tn;}
                 ;
 
 compoud_st      :   Token_largeBracket_left local_dec stmt_list Token_largeBracket_right       	{TRAN("compoud","{ local_dec stmt_list }");TreeNode* tn = getTreeNode(Token_compound); tn->child[0] = $2; tn->child[1] = $3; $$ = tn;}

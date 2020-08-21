@@ -80,6 +80,7 @@ int main()
     printf("%s", buf);
 
     // buildSymtabs_c(syntax_tree);
-    buildSymtabs(syntax_tree);
+    build_symtabs(syntax_tree);
+    print_tables(stdout);
     return 0;
 }

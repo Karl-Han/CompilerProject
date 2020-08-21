@@ -9,6 +9,8 @@ using std::string;
 using std::vector;
 using std::map;
 
+static int memloc = 0;
+
 enum SymType{
     Integer,
     Array,

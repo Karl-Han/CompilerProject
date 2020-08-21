@@ -2,7 +2,9 @@
 #define __analyze
 
 #include "token.h"
+#include "cstdio"
 
-void buildSymtabs(TreeNode *);
+void build_symtabs(TreeNode *);
+void print_tables(FILE* listing);
 
 #endif
