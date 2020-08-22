@@ -16,7 +16,7 @@
 
 int arr[10];
 
-int main(int num1, void id2, int num3){
+int main(int num1, int num3){
     num1 = 123;
     num3 = 456;
     return num1 + num3 + 1;
@@ -25,7 +25,6 @@ int main(int num1, void id2, int num3){
 void proc2(int arr[]){
     /* This is comment and local-declarations test */
     int arr[12];
-    void v;
 
     /* statement list test */
     ;;;

@@ -1,16 +1,36 @@
+#include "analyze.h"
 #include "tables.h"
 
 extern "C"
 {
-#include "token.h"
 #include "y.tab.h"
 }
 
 #define MAXCHILDREN 4
 
 string current_env;
-map<string, SymTab *> envs;
+map<string, SymTab *> symtabs;
 vector<string> func_stack;
+map<string, FuncTab*> functabs;
+
+map<string, int>* get_param(TreeNode* para){
+    TreeNode* tmp = para;
+    map<string, int>* m = new map<string, int>();
+    if (para->token == (int)Token_void)
+    {
+        return m;
+    }
+    
+
+    while (tmp != nullptr)
+    {
+        string s = tmp->str;
+        (*m)[s] = tmp->num;
+        tmp = tmp->sibling;
+    }
+
+    return m;
+}
 
 void traverse(TreeNode *t, void (*preProc)(TreeNode *), void (*postProc)(TreeNode *))
 {
@@ -33,10 +53,33 @@ void traverse(TreeNode *t, void (*preProc)(TreeNode *), void (*postProc)(TreeNod
             // set the env to the new func
             current_env = t->str;
             func_stack.push_back(current_env);
-            if (envs.find(current_env) == envs.end())
+            if (symtabs.find(current_env) == symtabs.end())
             {
-                // create new env for it
-                envs[current_env] = init_symtab();
+                // this is a new function
+                // 1. create new symbol table for func
+                // 2. insert into function table
+                symtabs[current_env] = init_symtab();
+                int type;
+                switch (t->child[0]->token)
+                {
+                    case Token_int:{
+                        // return type is int
+                        type = 1;
+                        break;
+                    }
+                    case Token_void:{
+                        // return type is void
+                        type = 2;
+                        break;
+                    }
+                
+                default:
+                    type = 0;
+                    break;
+                }
+                
+                map<string, int> * param = get_param(t->child[2]);
+                functabs[current_env] = init_functab(current_env, param, type);
             }
             
 
@@ -64,7 +107,6 @@ void insert_node(TreeNode *t)
     {
     case Token_assign:
     {
-        // sym_insert(envs[current_env], t->child[0]->str, t->child[0]->lineno, memloc++, 1, Void);
         tmp = t->child[0];
         type = Integer;
         break;
@@ -127,11 +169,12 @@ void insert_node(TreeNode *t)
         }
         if (t->child[1]->token == (int)Token_identifier)
         {
-            sym_insert(envs[current_env], t->child[1]->str, t->child[1]->lineno, memloc++, 1, Integer);
+            sym_insert(symtabs[current_env], t->child[1]->str, t->child[1]->lineno, 1, Integer);
         }
         break;
     }
     case Token_identifier:
+    case Token_var:
     {
         tmp = t;
         counter = 1;
@@ -150,7 +193,7 @@ void insert_node(TreeNode *t)
     if (tmp != nullptr)
     {
         // do insert
-        sym_insert(envs[current_env], tmp->str, tmp->lineno, memloc, counter, type);
+        sym_insert(symtabs[current_env], tmp->str, tmp->lineno, counter, type);
     }
 }
 
@@ -172,13 +215,13 @@ void null_proc(TreeNode *t)
 void build_symtabs(TreeNode *t)
 {
     current_env = "global";
-    envs = map<string, SymTab *>();
+    symtabs = map<string, SymTab *>();
     // could be delete because no funcion recursion
     //  when building symbol table
     func_stack = vector<string>();
     // new_func = false;
 
-    envs[current_env] = init_symtab();
+    symtabs[current_env] = init_symtab();
     func_stack.push_back("global");
 
     // traverse(t, insert_node, wrap_up);
@@ -193,30 +236,22 @@ void build_symtabs(TreeNode *t)
 //     return build_symtabs(t);
 // }
 
-void print_symtab(SymTab *table, FILE *listing)
-{
-    fprintf(listing, "Variable Name  Location   Line Numbers\n");
-    fprintf(listing, "-------------  --------   ------------\n");
-    for (auto i = table->m.begin(); i != table->m.end(); i++)
-    {
-        // for all string -> SymInfo*
-        SymInfo *si = i->second;
-        fprintf(listing, "%-14s ", si->name.c_str());
-        fprintf(listing, "%-8d  ", si->memloc);
-        for (auto j = si->refer_line.begin(); j != si->refer_line.end(); j++)
-        {
-            fprintf(listing, "%4d ", *j);
-        }
-        fprintf(listing, "\n");
-    }
-}
-
-void print_tables(FILE* listing){
-    for(auto m = envs.begin(); m != envs.end(); m++){
+void print_symtabs(FILE* listing){
+    for(auto m = symtabs.begin(); m != symtabs.end(); m++){
         string table_name = m->first;
         auto table = m->second;
         fprintf(listing, "%s\n", table_name.c_str());
         print_symtab(table, listing);
+        fprintf(listing, "\n");
+    }
+}
+
+void print_functabs(FILE* listing){
+    fprintf(listing, "%-16s%-10s%s\n", "function", "return", "parameters");
+    for(auto m = functabs.begin(); m != functabs.end(); m++){
+        // string func_name = m->first;
+        FuncTab* func_info = m->second;
+        print_functab(func_info, listing);
         fprintf(listing, "\n");
     }
 }

@@ -81,6 +81,8 @@ int main()
 
     // buildSymtabs_c(syntax_tree);
     build_symtabs(syntax_tree);
-    print_tables(stdout);
+    print_symtabs(stdout);
+    print_functabs(stdout);
+    
     return 0;
 }

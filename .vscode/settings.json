@@ -19,6 +19,7 @@
         "memory_resource": "cpp",
         "ostream": "cpp",
         "system_error": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "map": "cpp"
     }
 }
