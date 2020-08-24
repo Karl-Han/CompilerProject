@@ -83,6 +83,8 @@ int main()
     build_symtabs(syntax_tree);
     print_symtabs(stdout);
     print_functabs(stdout);
+
+    type_check(syntax_tree);
     
     return 0;
 }

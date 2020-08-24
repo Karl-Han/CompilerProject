@@ -12,11 +12,11 @@ using std::map;
 
 static int memloc = 0;
 
-enum SymType{
+typedef enum {
+    Void,
     Integer,
     Array,
-    Void,
-};
+}SymType;
 
 typedef struct _SymInfo
 {
@@ -24,7 +24,7 @@ typedef struct _SymInfo
     int memloc;
     int length;
     vector<int> refer_line;
-    enum SymType type;
+    SymType type;
 }SymInfo;
 
 typedef struct _SymInfo_ret{
@@ -54,20 +54,28 @@ void print_symtab(SymTab *table, FILE *listing);
 // }
 
 typedef struct {
+    string name;
+    // 1 for int, 2 for array
+    int type;
+} ParaInstant;
+
+typedef struct {
     string func_name;
     // 1 for void, 2 for int
     // 0 is default int
     // Not adding to practical usage: 3 for array 
     int ret_type;
     // 1 for int, 2 for array
-    map<string, int>* para_list;
+    map<string, int>* para_type_map;
+    vector<ParaInstant*>* para_type_list;
 } FuncTab;
 
-FuncTab* init_functab(string name, map<string, int>* para, int type);
+FuncTab* init_functab(std::string name, vector<ParaInstant*>* para_list, int type);
 
 int get_ret_type_functab(FuncTab* ft);
 
-map<string, int>* get_paras_functab(FuncTab* ft);
+map<string, int>* get_paras_map_functab(FuncTab* ft);
+const vector<ParaInstant*>* get_paras_list_functab(FuncTab* ft);
 
 void print_functab(FuncTab* ft, FILE* f);
 

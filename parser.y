@@ -227,8 +227,8 @@ exp             :   var Token_assign exp            	{TRAN("exp","var = exp");Tr
                 |   simple_exp                      	{TRAN("exp","simple_exp");$$ = $1;};
                 ;
 
-var             :   Token_identifier                	{TRAN("var","identifier");TreeNode* tn = getTreeNode(Token_var); TreeNode* id = $1; tn->str = id->str; tn->num = -1; $$ = tn;};
-                |   Token_identifier Token_middleBracket_left exp Token_middleBracket_right    	{TRAN("var","identifier[]");TreeNode* tn = getTreeNode(Token_var); TreeNode* id = $1; tn->str = id->str; tn->num = 0; tn->child[0] = $3; $$ = tn;};
+var             :   Token_identifier                	{TRAN("var","identifier");TreeNode* tn = getTreeNode(Token_var); TreeNode* id = $1; tn->str = id->str; tn->num = 1; $$ = tn;};
+                |   Token_identifier Token_middleBracket_left exp Token_middleBracket_right    	{TRAN("var","identifier[]");TreeNode* tn = getTreeNode(Token_var); TreeNode* id = $1; tn->str = id->str; tn->num = 2; tn->child[0] = $3; $$ = tn;};
                 ;
 
 simple_exp      :   additive_exp relop additive_exp    	{TRAN("simple_exp","additive_exp lop additive_exp");TreeNode* tn = $2; tn->child[0] = $1; tn->child[1] = $3; $$ = tn;}

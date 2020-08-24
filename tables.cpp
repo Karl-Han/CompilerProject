@@ -91,10 +91,24 @@ void print_symtab(SymTab *table, FILE *listing)
     }
 }
 
-FuncTab* init_functab(std::string name, map<string, int>* para, int type){
+map<string, int>* init_para_type_map(vector<ParaInstant*>* v){
+    map<string, int>* m = new map<string, int>();
+    for (auto i = v->begin(); i != v->end(); i++)
+    {
+        // for all element
+        string s =  (*i)->name;
+        (*m)[s] = (*i)->type;
+    }
+    
+    return m;
+}
+
+FuncTab* init_functab(std::string name, vector<ParaInstant*>* para_list, int type){
     FuncTab* ft = new FuncTab();
     ft->func_name = name;
-    ft->para_list = para;
+    // ft->para_type_map = para;
+    ft->para_type_list = para_list;
+    ft->para_type_map = init_para_type_map(para_list);
     ft->ret_type = type;
 
     return ft;
@@ -104,15 +118,21 @@ int get_ret_type_functab(FuncTab* ft){
     return ft->ret_type;
 }
 
-map<string, int>* get_paras_functab(FuncTab* ft){
-    map<string, int>* m = new map<string,int>(*ft->para_list);
+map<string, int>* get_paras_map_functab(FuncTab* ft){
+    map<string, int>* m = new map<string,int>(*ft->para_type_map);
     return m;
+}
+
+const vector<ParaInstant*>* get_paras_list_functab(FuncTab* ft){
+    return ft->para_type_list;
 }
 
 void print_functab(FuncTab* ft, FILE* f){
     fprintf(f, "%-14s ", ft->func_name.c_str());
     switch (ft->ret_type)
     {
+    // 1 for void, 2 for int
+    // 0 is default int
     case 1:
         // No return value
         fprintf(f, " %-8s ", "Void");
@@ -128,7 +148,7 @@ void print_functab(FuncTab* ft, FILE* f){
         exit(1);
         break;
     }
-    for (auto &i : *ft->para_list)
+    for (auto &i : *ft->para_type_map)
     {
         string s;
         // 1 for int, 2 for array
@@ -141,7 +161,8 @@ void print_functab(FuncTab* ft, FILE* f){
             s = "Array";
             break;
         default:
-            printf("No such parameter type\nExiting");
+            printf("No such parameter for `%s` with type `%s`\nExiting", s.c_str(), i.first.c_str());
+            exit(1);
             break;
         }
         fprintf(f, " %s(%s) ", s.c_str(), i.first.c_str());

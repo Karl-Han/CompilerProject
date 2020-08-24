@@ -110,6 +110,7 @@ TreeNode* getTreeNode(int token){
     tn->num = 0;
     tn->str = NULL;
     tn->lineno = lineno;
+	tn->type = 0;
     init_sib_child(tn);
     return tn;
 }
@@ -126,6 +127,7 @@ TreeNode* getTreeNode_number(int token, int num){
     tn->num = num;
     tn->str = NULL;
     tn->lineno = lineno;
+	tn->type = 0;
     init_sib_child(tn);
     return tn;
 }
@@ -142,8 +144,13 @@ TreeNode* getTreeNode_identifier(int token, char* str){
     tn->num = 0;
     tn->str = strdup(str);
     tn->lineno = lineno;
+	tn->type = 0;
     init_sib_child(tn);
     return tn;
+}
+
+char* token2char(int token){
+    return tokens[token - tokens_offset];
 }
 
 void newline(){
