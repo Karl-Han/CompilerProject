@@ -44,3 +44,4 @@ lex.yy.c
 output
 debug_output
 patches/
+tiny_files/

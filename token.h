@@ -4,6 +4,12 @@
 #include <stdlib.h>
 
 #define MAX_CHILDREN 4
+
+typedef enum {
+    StmtK,
+    ExpK
+}NodeKind;
+
 typedef struct _TreeNode
 {
     // this int is the same as in y.tab.h
@@ -22,6 +28,7 @@ typedef struct _TreeNode
     // node expression type for type check
     // 0 for void, 1 for integer, 2 for array
     int type;
+    NodeKind nk;
 } TreeNode;
 
 void init_sib_child(TreeNode *);

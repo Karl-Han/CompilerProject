@@ -226,8 +226,16 @@ void build_symtabs(TreeNode *t)
     func_stack = vector<string>();
     // new_func = false;
 
+    functabs["input"] = init_functab("input", new vector<ParaInstant*>(), 2);
+    vector<ParaInstant*>* output = new vector<ParaInstant*>();
+    ParaInstant* pi = new ParaInstant();
+    pi->name = "x";
+    pi->type = 1;
+    output->push_back(pi);
+    functabs["output"] = init_functab("output", output, 1);
+
     symtabs[current_func] = init_symtab();
-    func_stack.push_back("global");
+    func_stack.push_back(current_func);
 
     // traverse(t, insert_node, wrap_up);
     traverse(t, insert_node, null_proc);
@@ -312,7 +320,7 @@ void check_node(TreeNode* t){
         // check argument type and number
         // use vector to indicate sequence instead of map
         // map<string, int>* params = get_paras_list_functab(functabs[current_func]);
-        const vector<ParaInstant*>* params = get_paras_list_functab(functabs[current_func]);
+        const vector<ParaInstant*>* params = get_paras_list_functab(functabs[t->str]);
         TreeNode* exp = t->child[1];
         bool valid = true;
         int counter = 0;
@@ -443,8 +451,9 @@ void check_node(TreeNode* t){
         break;
     }
     default:
-        printf("Fall through to default in type_check with type %s", tokens[t->token - tokens_offset]);
-        exit(1);
+        // printf("Fall through to default in type_check with type %s", tokens[t->token - tokens_offset]);
+        // ((TreeNode*)0x0)->type = 1;
+        // exit(1);
         break;
     }
 }
@@ -453,4 +462,45 @@ void type_check(TreeNode* t){
     current_func = "global";
     func_stack.clear();
     traverse(t, null_proc, check_node);
+}
+
+void tag_treenode(TreeNode* t){
+    switch (t->token)
+    {
+        // all compare -> arithmetic op
+    case Token_plus:
+    case Token_minus:
+    case Token_multiply:
+    case Token_divide:
+    case Token_less:
+    case Token_lessEqual:
+    case Token_more:
+    case Token_moreEqual:
+    case Token_equal:
+    case Token_noEqual:
+    // call stmt
+    case Token_call:
+    // var reference stmt
+    case Token_var:
+    // number
+    case Token_number:
+        t->nk = ExpK;
+        break;
+    case Token_func:
+    case Token_if:
+    case Token_while:
+    case Token_var_dec:
+    case Token_para:
+    case Token_assign:
+    case Token_return:
+        t->nk = StmtK;
+        break;
+    default:
+        printf("This node %s's type unknown\n", token2char(t->token));
+        break;
+    }
+}
+
+void tag_kind(TreeNode* t){
+    traverse(t, tag_treenode, null_proc);
 }

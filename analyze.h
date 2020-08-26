@@ -12,5 +12,6 @@ void build_symtabs(TreeNode *);
 void print_symtabs(FILE* listing);
 void print_functabs(FILE* listing);
 void type_check(TreeNode*);
+void tag_kind(TreeNode*);
 
 #endif
