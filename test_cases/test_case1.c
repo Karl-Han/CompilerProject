@@ -22,13 +22,13 @@ int main(int num1, int num3){
     return num1 + num3 + 1;
 }
 
-void proc2(int arr[]){
+void proc2(int brr[]){
     /* This is comment and local-declarations test */
     int arr[12];
 
     /* statement list test */
     ;;;
-    proc1();
+    proc2(arr);
 }
 
 int brr[20];

@@ -83,8 +83,11 @@ int main()
     build_symtabs(syntax_tree);
     print_symtabs(stdout);
     print_functabs(stdout);
+    printf("Passed build symbol tables.\n");
 
     type_check(syntax_tree);
+    printf("Passed type checking.\n");
     
+    tag_kind(syntax_tree);
     return 0;
 }

@@ -14,6 +14,10 @@ map<string, SymTab *> symtabs;
 vector<string> func_stack;
 map<string, FuncTab*> functabs;
 
+void seg_fault(){
+    ((TreeNode*)0x0)->type = 1;
+}
+
 // get the parameter list
 // invoke by functab
 vector<ParaInstant*>* get_param(TreeNode* para){
@@ -73,6 +77,8 @@ void traverse(TreeNode *t, void (*preProc)(TreeNode *), void (*postProc)(TreeNod
                 // 2. insert into function table
                 symtabs[current_func] = init_symtab();
                 int type;
+
+                // deal with return type
                 switch (t->child[0]->token)
                 {
                     // 1 for void, 2 for int
@@ -145,7 +151,7 @@ void insert_node(TreeNode *t)
         if (t->child[0]->token != Token_int)
         {
             printf("Wrong type of variable `%s` type %s declararion.\nIn building symbol.", t->child[1]->str, tokens[t->child[0]->token - tokens_offset]);
-            exit(1);
+            seg_fault();
         }
         break;
     }
@@ -226,6 +232,7 @@ void build_symtabs(TreeNode *t)
     func_stack = vector<string>();
     // new_func = false;
 
+    // init `input` and `output`
     functabs["input"] = init_functab("input", new vector<ParaInstant*>(), 2);
     vector<ParaInstant*>* output = new vector<ParaInstant*>();
     ParaInstant* pi = new ParaInstant();
@@ -241,7 +248,6 @@ void build_symtabs(TreeNode *t)
     traverse(t, insert_node, null_proc);
 
     assert(func_stack.back() == "global");
-    printf("Pass build symbol tables.\n");
 }
 
 // print symbol tables
@@ -314,7 +320,7 @@ void check_node(TreeNode* t){
                 break;
             default:
                 printf("No such funtion return type %d\nExiting", functabs[t->str]->ret_type);
-                exit(1);
+                seg_fault();
         }
 
         // check argument type and number
@@ -337,6 +343,7 @@ void check_node(TreeNode* t){
                 valid = false;
                 // passing type_tn to type_para
                 printf("Invalid parameters type. Passing %s to %s(%s)\n", TYPE[type_tn], TYPE[type_para], (*params)[counter]->name.c_str());
+                seg_fault();
             }
 
             counter++;
@@ -347,31 +354,40 @@ void check_node(TreeNode* t){
         {
             // it is not valid
             printf("Invalid parameters type or mismatch parameters number.\n");
-            exit(1);
+            seg_fault();
         }
         // it is valid then keep going
         break;
     }
     case Token_var:{
+        // .num is its type
         if (t->num == 0)
         {
             // invalid variable type
             printf("Invalid variable type Void for %s", t->str);
-            exit(1);
+            seg_fault();
         }
-        if (t->num == 2)
+        SymInfo_ret si = sym_lookup(symtabs[current_func], t->str);
+        if (si.type == Array)
         {
-            if (t->child[0] != nullptr)
+            // this symbol is array
+            if (t->child[0] == nullptr)
             {
-                // this is an valid reference in the array
-                t->type = 1;
-            }
-            else{
+                // 0 for void, 1 for integer, 2 for array
+                // refer here as array
                 t->type = 2;
             }
+            else{
+                // refer here as integer
+                t->type = 1;
+            }
+        }
+        else if(si.type == Integer) {
+            t->type = 1;
         }
         else{
-            t->type = 1;
+            printf("No such symbol %s(%s)", token2char(t->token), t->str);
+            seg_fault();
         }
         break;
     }
@@ -401,13 +417,13 @@ void check_node(TreeNode* t){
         {
             // invalid assignment
             printf("Invalid assignment to `%s(%s)`\n", TYPE[t->child[0]->type], t->child[0]->str);
-            exit(1);
+            seg_fault();
         }
         if (t->child[1]->type != 1)
         {
             // it is a invalid exp
             printf("Invalid expression in assignment\n");
-            exit(1);
+            seg_fault();
         }
         
         break;
@@ -496,7 +512,7 @@ void tag_treenode(TreeNode* t){
         t->nk = StmtK;
         break;
     default:
-        printf("This node %s's type unknown\n", token2char(t->token));
+        // printf("This node %s's type unknown\n", token2char(t->token));
         break;
     }
 }
