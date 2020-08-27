@@ -1,5 +1,4 @@
 #include "analyze.h"
-#include "tables.h"
 
 extern "C"
 {
@@ -10,9 +9,6 @@ extern "C"
 static char* TYPE[] = {"VOID", "INTEGER", "ARRAY"};
 
 string current_func;
-map<string, SymTab *> symtabs;
-vector<string> func_stack;
-map<string, FuncTab*> functabs;
 
 void seg_fault(){
     ((TreeNode*)0x0)->type = 1;
@@ -67,7 +63,6 @@ void traverse(TreeNode *t, void (*preProc)(TreeNode *), void (*postProc)(TreeNod
             // this is a fucntion node
             // set the env to the new func
             current_func = t->str;
-            func_stack.push_back(current_func);
 
             // init function table if no find
             if (symtabs.find(current_func) == symtabs.end())
@@ -75,7 +70,7 @@ void traverse(TreeNode *t, void (*preProc)(TreeNode *), void (*postProc)(TreeNod
                 // this is a new function
                 // 1. create new symbol table for func
                 // 2. insert into function table
-                symtabs[current_func] = init_symtab();
+                symtabs[current_func] = init_symtab(current_func);
                 int type;
 
                 // deal with return type
@@ -108,8 +103,7 @@ void traverse(TreeNode *t, void (*preProc)(TreeNode *), void (*postProc)(TreeNod
                 traverse(t->child[i], preProc, postProc);
             }
             // restore the env
-            func_stack.pop_back();
-            current_func = func_stack.back();
+            current_func = "global";
 
             traverse(t->sibling, preProc, postProc);
         }
@@ -145,9 +139,11 @@ void insert_node(TreeNode *t)
         }
         else
         {
+            // this is a integer
             counter = 1;
             type = Integer;
         }
+
         if (t->child[0]->token != Token_int)
         {
             printf("Wrong type of variable `%s` type %s declararion.\nIn building symbol.", t->child[1]->str, tokens[t->child[0]->token - tokens_offset]);
@@ -161,6 +157,7 @@ void insert_node(TreeNode *t)
         tmp = t;
         if (t->num == 2)
         {
+            // it is pass as reference in the future
             type = Array;
         }
         else{
@@ -229,7 +226,6 @@ void build_symtabs(TreeNode *t)
     symtabs = map<string, SymTab *>();
     // could be delete because no funcion recursion
     //  when building symbol table
-    func_stack = vector<string>();
     // new_func = false;
 
     // init `input` and `output`
@@ -241,13 +237,11 @@ void build_symtabs(TreeNode *t)
     output->push_back(pi);
     functabs["output"] = init_functab("output", output, 1);
 
-    symtabs[current_func] = init_symtab();
-    func_stack.push_back(current_func);
+    symtabs[current_func] = init_symtab(current_func);
 
     // traverse(t, insert_node, wrap_up);
     traverse(t, insert_node, null_proc);
 
-    assert(func_stack.back() == "global");
 }
 
 // print symbol tables
@@ -264,12 +258,14 @@ void print_symtabs(FILE* listing){
 // print function tables
 void print_functabs(FILE* listing){
     fprintf(listing, "%-16s%-10s%s\n", "function", "return", "parameters");
+    fprintf(listing, "-------------   --------  --------------------\n");
     for(auto m = functabs.begin(); m != functabs.end(); m++){
         // string func_name = m->first;
         FuncTab* func_info = m->second;
         print_functab(func_info, listing);
         fprintf(listing, "\n");
     }
+    fprintf(listing, "\n");
 }
 
 bool is_in_current_symtab(string name){
@@ -476,7 +472,6 @@ void check_node(TreeNode* t){
 
 void type_check(TreeNode* t){
     current_func = "global";
-    func_stack.clear();
     traverse(t, null_proc, check_node);
 }
 

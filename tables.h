@@ -10,7 +10,7 @@ using std::string;
 using std::vector;
 using std::map;
 
-static int memloc = 0;
+static map<string, int> func2memloc;
 
 typedef enum {
     Void,
@@ -20,8 +20,11 @@ typedef enum {
 
 typedef struct _SymInfo
 {
+    // symbol name
     string name;
+    // relative memory location
     int memloc;
+    // length of the symbol
     int length;
     vector<int> refer_line;
     SymType type;
@@ -33,10 +36,11 @@ typedef struct _SymInfo_ret{
 } SymInfo_ret;
 
 typedef struct _SymTab{
+    string name_table;
     map<string, SymInfo*> m;
 }SymTab;
 
-SymTab* init_symtab();
+SymTab* init_symtab(string);
 
 // insert info to symbol table
 // if not present, insert symbol

@@ -19,6 +19,8 @@ CC       = gcc
 CPP      = g++
 OBJ      = lex.yy.o y.tab.o test.o gen_dot.o 
 OBJCPP	 = analyze.o tables.o
+SRC      = lex.yy.c y.tab.c gen_dot.c 
+SRCPP	 = analyze.cpp tables.cpp test.cpp
 # TESTOUT  = $(basename $(TESTFILE)).asm
 OUTFILES = lex.yy.c y.tab.c y.tab.h y.output $(OUT)
 
@@ -49,10 +51,10 @@ $(OUT): $(OBJ) $(OBJCPP) lex.yy.c y.tab.c
 	$(CPP) -o $(OUT) $(OBJ) $(OBJCPP)
 
 $(OBJ): lex.yy.c y.tab.c
-	$(CC) $(CFLAGS) *.c
+	$(CC) $(CFLAGS) $(SRC)
 
 $(OBJCPP): lex.yy.c y.tab.c
-	$(CPP) $(CFLAGS) *.cpp
+	$(CPP) $(CFLAGS) $(SRCPP)
 
 lex.yy.c: $(SCANNER) y.tab.c y.tab.h
 	flex $<

@@ -45,6 +45,8 @@ extern "C"{
 #include "analyze.h"
 
 extern TreeNode *root;
+FILE* code;
+bool TraceCode = true;
 
 void print_node(TreeNode *tn)
 {
@@ -61,6 +63,8 @@ void print_node(TreeNode *tn)
 
 int main()
 {
+    code = stdout;
+
     // prepare for failure of parsing
     int ret = yyparse();
     TreeNode* syntax_tree;

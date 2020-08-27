@@ -13,8 +13,9 @@ SymInfo* init_syminfo(string name, int loc, int length, SymType type){
 }
 
 // initialize symbol table
-SymTab* init_symtab(){
+SymTab* init_symtab(string name){
     SymTab* st = (SymTab*)malloc(sizeof(SymTab));
+    st->name_table = name;
     st->m = map<string, SymInfo*>();
 
     return st;
@@ -24,18 +25,28 @@ SymTab* init_symtab(){
 // if not present, insert symbol
 // if present, insert reference
 void sym_insert(SymTab* t, string name, int lineno, int count, SymType type){
+    // no count && not a array
+    // => invalid symbol
     if (count == 0 && type != Array)
     {
         return ;
     }
+
+    if (func2memloc.find(t->name_table) == func2memloc.end())
+    {
+        // not yet allocate memloc for `name`
+        func2memloc[t->name_table] = 0;
+    }
     
+    // find if the name is already appear in table
     auto iter = t->m.find(name);
     if (iter == t->m.end())
     {
         // no such symbol
         // insert new symbol
-        SymInfo* si = init_syminfo(name, memloc, count, type);
-        memloc++;
+        SymInfo* si = init_syminfo(name, func2memloc[t->name_table], count, type);
+        // CONFUSED, to be revise
+        func2memloc[t->name_table] += count;
         si->refer_line.push_back(lineno);
         t->m[name] = si;
     }
