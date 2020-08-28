@@ -6,30 +6,31 @@ extern "C"
 }
 
 #define MAXCHILDREN 4
-static char* TYPE[] = {"VOID", "INTEGER", "ARRAY"};
+static char *TYPE[] = {"VOID", "INTEGER", "ARRAY"};
 
 string current_func;
 
-void seg_fault(){
-    ((TreeNode*)0x0)->type = 1;
+void seg_fault()
+{
+    ((TreeNode *)0x0)->type = 1;
 }
 
 // get the parameter list
 // invoke by functab
-vector<ParaInstant*>* get_param(TreeNode* para){
-    TreeNode* tmp = para;
-    vector<ParaInstant*>* v = new vector<ParaInstant*>();
+vector<ParaInstant *> *get_param(TreeNode *para)
+{
+    TreeNode *tmp = para;
+    vector<ParaInstant *> *v = new vector<ParaInstant *>();
     if (para->token == (int)Token_void)
     {
         // no parameter
         return v;
     }
-    
 
     while (tmp != nullptr)
     {
         // get the variable name
-        ParaInstant* pi = new ParaInstant();
+        ParaInstant *pi = new ParaInstant();
         pi->name = tmp->str;
         pi->type = tmp->num;
 
@@ -39,7 +40,6 @@ vector<ParaInstant*>* get_param(TreeNode* para){
 
     return v;
 }
-
 
 // used to traverse the tree structure
 // also change the current_function during the process
@@ -76,25 +76,27 @@ void traverse(TreeNode *t, void (*preProc)(TreeNode *), void (*postProc)(TreeNod
                 // deal with return type
                 switch (t->child[0]->token)
                 {
-                    // 1 for void, 2 for int
-                    // 0 is default int
-                    case Token_int:{
-                        // return type is int
-                        type = 2;
-                        break;
-                    }
-                    case Token_void:{
-                        // return type is void
-                        type = 1;
-                        break;
-                    }
-                
+                // 1 for void, 2 for int
+                // 0 is default int
+                case Token_int:
+                {
+                    // return type is int
+                    type = 2;
+                    break;
+                }
+                case Token_void:
+                {
+                    // return type is void
+                    type = 1;
+                    break;
+                }
+
                 default:
                     type = 0;
                     break;
                 }
-                
-                vector<ParaInstant*>* param = get_param(t->child[2]);
+
+                vector<ParaInstant *> *param = get_param(t->child[2]);
                 functabs[current_func] = init_functab(current_func, param, type);
             }
 
@@ -119,10 +121,25 @@ void insert_node(TreeNode *t)
 
     switch (t->token)
     {
-    case Token_assign:
-    {
-        tmp = t->child[0];
-        type = Integer;
+    case Token_read:{
+        tmp = t;
+        SymInfo_ret ret = sym_lookup(symtabs[current_func], t->str);
+        if (ret.type == Void)
+        {
+            // error
+            printf("Refer to %s before declaration.\n", t->str);
+            exit(1);
+        }
+        else if (ret.type == Array && t->num < 0)
+        {
+            // there must be value in .num
+            printf("Refer to Array(%s) with neg index %d.\n", t->str, t->num);
+            exit(1);
+        }
+        else{
+            type = Integer;
+            counter = 1;
+        }
         break;
     }
     case Token_var_dec:
@@ -160,12 +177,20 @@ void insert_node(TreeNode *t)
             // it is pass as reference in the future
             type = Array;
         }
-        else{
+        else
+        {
             type = Integer;
             counter = 1;
         }
         break;
     }
+    case Token_assign:
+    {
+        tmp = t;
+        type = Integer;
+        break;
+    }
+
     case Token_plus:
     case Token_minus:
     case Token_multiply:
@@ -197,11 +222,6 @@ void insert_node(TreeNode *t)
         counter = 1;
         break;
     }
-    case Token_func:
-    {
-        break;
-    }
-
     default:
         // printf("No ID appears in %s\nExiting", tokens[t->token-tokens_offset]);
         // exit(1);
@@ -229,9 +249,9 @@ void build_symtabs(TreeNode *t)
     // new_func = false;
 
     // init `input` and `output`
-    functabs["input"] = init_functab("input", new vector<ParaInstant*>(), 2);
-    vector<ParaInstant*>* output = new vector<ParaInstant*>();
-    ParaInstant* pi = new ParaInstant();
+    functabs["input"] = init_functab("input", new vector<ParaInstant *>(), 2);
+    vector<ParaInstant *> *output = new vector<ParaInstant *>();
+    ParaInstant *pi = new ParaInstant();
     pi->name = "x";
     pi->type = 1;
     output->push_back(pi);
@@ -241,12 +261,13 @@ void build_symtabs(TreeNode *t)
 
     // traverse(t, insert_node, wrap_up);
     traverse(t, insert_node, null_proc);
-
 }
 
 // print symbol tables
-void print_symtabs(FILE* listing){
-    for(auto m = symtabs.begin(); m != symtabs.end(); m++){
+void print_symtabs(FILE *listing)
+{
+    for (auto m = symtabs.begin(); m != symtabs.end(); m++)
+    {
         string table_name = m->first;
         auto table = m->second;
         fprintf(listing, "%s\n", table_name.c_str());
@@ -256,26 +277,24 @@ void print_symtabs(FILE* listing){
 }
 
 // print function tables
-void print_functabs(FILE* listing){
+void print_functabs(FILE *listing)
+{
     fprintf(listing, "%-16s%-10s%s\n", "function", "return", "parameters");
     fprintf(listing, "-------------   --------  --------------------\n");
-    for(auto m = functabs.begin(); m != functabs.end(); m++){
+    for (auto m = functabs.begin(); m != functabs.end(); m++)
+    {
         // string func_name = m->first;
-        FuncTab* func_info = m->second;
+        FuncTab *func_info = m->second;
         print_functab(func_info, listing);
         fprintf(listing, "\n");
     }
     fprintf(listing, "\n");
 }
 
-bool is_in_current_symtab(string name){
-    SymTab* c = symtabs[current_func];
-    return c->m.find(name) != c->m.end();
-}
-
-// used to check all the proper type of the exp 
+// used to check all the proper type of the exp
 // just use the env, traverse will handle that thing
-void check_node(TreeNode* t){
+void check_node(TreeNode *t)
+{
     switch (t->token)
     {
     case Token_plus:
@@ -287,43 +306,47 @@ void check_node(TreeNode* t){
     case Token_more:
     case Token_moreEqual:
     case Token_equal:
-    case Token_noEqual:{
+    case Token_noEqual:
+    {
         // if both operators valid, then it is valid
         if (t->child[0]->type == 1 && t->child[1]->type == 1)
         {
             // valid arithmetic
             t->type = 1;
         }
-        else{
+        else
+        {
             printf("Invalid exp for %s", token2char(t->token));
             t->type = 0;
         }
-        
+
         break;
     }
-    case Token_call: {
+    case Token_call:
+    {
         // function name is .str
         // check return type valid
-        switch(functabs[t->str]->ret_type){
-            case 1:
-                // return type Void
-                t->type = 0;
-                break;
-            case 0:
-            case 2:
-                // return type Integer
-                t->type = 1;
-                break;
-            default:
-                printf("No such funtion return type %d\nExiting", functabs[t->str]->ret_type);
-                seg_fault();
+        switch (functabs[t->str]->ret_type)
+        {
+        case 1:
+            // return type Void
+            t->type = 0;
+            break;
+        case 0:
+        case 2:
+            // return type Integer
+            t->type = 1;
+            break;
+        default:
+            printf("No such funtion return type %d\nExiting", functabs[t->str]->ret_type);
+            seg_fault();
         }
 
         // check argument type and number
         // use vector to indicate sequence instead of map
         // map<string, int>* params = get_paras_list_functab(functabs[current_func]);
-        const vector<ParaInstant*>* params = get_paras_list_functab(functabs[t->str]);
-        TreeNode* exp = t->child[1];
+        const vector<ParaInstant *> *params = get_paras_list_functab(functabs[t->str]);
+        TreeNode *exp = t->child[1];
         bool valid = true;
         int counter = 0;
 
@@ -345,8 +368,8 @@ void check_node(TreeNode* t){
             counter++;
             exp = exp->sibling;
         }
-        
-        if (!valid || (counter != params->size()) )
+
+        if (!valid || (counter != params->size()))
         {
             // it is not valid
             printf("Invalid parameters type or mismatch parameters number.\n");
@@ -355,7 +378,8 @@ void check_node(TreeNode* t){
         // it is valid then keep going
         break;
     }
-    case Token_var:{
+    case Token_var:
+    {
         // .num is its type
         if (t->num == 0)
         {
@@ -373,15 +397,18 @@ void check_node(TreeNode* t){
                 // refer here as array
                 t->type = 2;
             }
-            else{
+            else
+            {
                 // refer here as integer
                 t->type = 1;
             }
         }
-        else if(si.type == Integer) {
+        else if (si.type == Integer)
+        {
             t->type = 1;
         }
-        else{
+        else
+        {
             printf("No such symbol %s(%s)", token2char(t->token), t->str);
             seg_fault();
         }
@@ -390,7 +417,6 @@ void check_node(TreeNode* t){
     case Token_number:
         t->type = 1;
         break;
-
 
     // Below is the statement check
     case Token_if:
@@ -405,25 +431,35 @@ void check_node(TreeNode* t){
         // it does not to be check
         break;
     case Token_assign:
-        // valid only if 
-        // 1. var in symtab 
+    {
+        // valid only if
+        // 1. var in symtab
         // 2. var is Integer type
         // underneath will deal with var's type
-        if (t->child[0]->type != 1 && !is_in_current_symtab(t->child[0]->str))
+        SymInfo_ret ret = sym_lookup(symtabs[current_func], t->str);
+        if (ret.type == Void)
+        {
+            // no such symbol
+            printf("No such symbol %s\n", t->str);
+        }
+        if (ret.type == Array && t->child[0] == nullptr)
         {
             // invalid assignment
-            printf("Invalid assignment to `%s(%s)`\n", TYPE[t->child[0]->type], t->child[0]->str);
+            printf("Invalid assignment to `%s(%s)`\n", "Array", t->str);
             seg_fault();
         }
+
+        // check validity of exp
         if (t->child[1]->type != 1)
         {
             // it is a invalid exp
             printf("Invalid expression in assignment\n");
             seg_fault();
         }
-        
         break;
-    case Token_return:{
+    }
+    case Token_return:
+    {
         bool valid = 1;
         int ret_type = functabs[current_func]->ret_type;
         if (t->child[0] == nullptr)
@@ -438,17 +474,20 @@ void check_node(TreeNode* t){
                 valid = 0;
             }
         }
-        else{
+        else
+        {
             // it has return value with type Integer
             //  and must be Integer 2 or default 0
-            if (t->child[0]->type == 1){
+            if (t->child[0]->type == 1)
+            {
                 if (ret_type != 0 && ret_type != 2)
                 {
                     // return type is not Integer
                     valid = 0;
                 }
             }
-            else{
+            else
+            {
                 valid = 0;
             }
         }
@@ -457,7 +496,8 @@ void check_node(TreeNode* t){
             // do something to store it in a proper loc?
             // TODO
         }
-        else{
+        else
+        {
             printf("Mismatch return type in function `%s`", current_func.c_str());
         }
         break;
@@ -470,12 +510,14 @@ void check_node(TreeNode* t){
     }
 }
 
-void type_check(TreeNode* t){
+void type_check(TreeNode *t)
+{
     current_func = "global";
     traverse(t, null_proc, check_node);
 }
 
-void tag_treenode(TreeNode* t){
+void tag_treenode(TreeNode *t)
+{
     switch (t->token)
     {
         // all compare -> arithmetic op
@@ -512,6 +554,7 @@ void tag_treenode(TreeNode* t){
     }
 }
 
-void tag_kind(TreeNode* t){
+void tag_kind(TreeNode *t)
+{
     traverse(t, tag_treenode, null_proc);
 }

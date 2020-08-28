@@ -81,6 +81,8 @@ void reset_yyin();
 %token <tn> Token_void 
 %token <tn> Token_while 
 %token <tn> Token_return
+%token <tn> Token_read
+%token <tn> Token_write
 %token <tn> Token_plus 
 %token <tn> Token_minus 
 %token <tn> Token_multiply 
@@ -133,6 +135,8 @@ void reset_yyin();
 %type <tn> selection_st    
 %type <tn> iteration_st    
 %type <tn> return_st       
+%type <tn> read_st       
+%type <tn> write_st
 %type <tn> exp             
 %type <tn> var             
 %type <tn> simple_exp      
@@ -206,6 +210,8 @@ statement       :   exp_st                          	{TRAN("statement","exp_st")
                 |   selection_st                    	{TRAN("statement","selection_st"); $$ = $1; }
                 |   iteration_st                    	{TRAN("statement","iteration_st"); $$ = $1; }
                 |   return_st                       	{TRAN("statement","return_st"); $$ = $1; }
+                |   read_st                       	  {TRAN("statement","read_st"); $$ = $1; }
+                |   write_st                          {TRAN("statement","write_st"); $$ = $1; }
                 ;
 
 exp_st          :   exp Token_semicolon                         	{TRAN("exp_st","exp;"); $$ = $1; }
@@ -223,7 +229,13 @@ return_st       :   Token_return Token_semicolon                	{TRAN("return_s
                 |   Token_return exp Token_semicolon            	{TRAN("return_st","return exp;");TreeNode* tn = getTreeNode(Token_return); tn->child[0] = $2; $$ = tn;};
                 ;
 
-exp             :   var Token_assign exp            	{TRAN("exp","var = exp");TreeNode* tn = getTreeNode(Token_assign); tn->child[0] = $1; tn->child[1] = $3; $$ = tn;};
+read_st         :   Token_read Token_var Token_semicolon            	{TRAN("read_st","read var;");TreeNode* tn = $1; TreeNode* var = $2; tn->str = var->str; tn->num = var->num; $$ = tn;};
+                ;
+
+write_st        :   Token_write exp Token_semicolon                	{TRAN("write_st","write exp;");TreeNode* tn = $1; tn->child[0] = $2; $$ = tn;};
+                ;
+
+exp             :   var Token_assign exp            	{TRAN("exp","var = exp");TreeNode* tn = getTreeNode(Token_assign); TreeNode* id = $1; tn->str = id->str; tn->child[0] = id->child[0]; tn->child[1] = $3; $$ = tn;};
                 |   simple_exp                      	{TRAN("exp","simple_exp");$$ = $1;};
                 ;
 

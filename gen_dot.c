@@ -39,7 +39,7 @@
 
 extern char *tokens[] = {
     "Token_if", "Token_else", "Token_int",
-    "Token_void", "Token_while", "Token_return",
+    "Token_void", "Token_while", "Token_return", "Token_read", "Token_write",
     "Token_plus", "Token_minus", "Token_multiply", "Token_divide",
     "Token_less", "Token_lessEqual", "Token_more", "Token_moreEqual",
     "Token_equal", "Token_noEqual", "Token_assign", "Token_semicolon",

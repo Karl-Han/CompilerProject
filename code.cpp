@@ -14,10 +14,10 @@
 extern bool TraceCode;
 extern FILE* code;
 
-/* TM location number for current instruction emission */
+/* TM location number for **current instruction** emission */
 static int emitLoc = 0 ;
 
-/* Highest TM location emitted so far
+/* **Highest TM location emitted so far**
    For use in conjunction with emitSkip,
    emitBackup, and emitRestore */
 static int highEmitLoc = 0;
@@ -86,6 +86,26 @@ void emitBackup( int loc)
 // restore the latest instruction location
 void emitRestore(void)
 { emitLoc = highEmitLoc;}
+
+void emitBackup_reg(int reg){
+  // store #reg = #temp
+  // store content in reg to mem
+  // calculate exact loc of offset
+  emitRM("ST", reg, offset_mp, gp, "store: temp value backuping");
+
+  // store mem to reg
+  emitRM("LD", tmp, offset_mp, gp, "load: load temp value to #tmp");
+}
+
+void emitRestore_reg(int reg){
+  // store #reg = #temp
+  // store content in reg to mem
+  // calculate exact loc of offset
+  emitRM("ST", tmp, offset_mp, gp, "store: temp value restoring");
+
+  // store mem to reg
+  emitRM("LD", reg, offset_mp, gp, "load: restoring temp value to #tmp");
+}
 
 /* Procedure emitRM_Abs
  * converts an absolute reference 

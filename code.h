@@ -33,6 +33,9 @@
 // used to record the offset of the stack
 #define offset_mp 4
 
+// temp register
+#define tmp 8
+
 /* accumulator */
 #define ac 0
 
@@ -84,6 +87,9 @@ void emitBackup(int loc);
  * unemitted position
  */
 void emitRestore(void);
+
+void emitBackup_reg(int loc);
+void emitRestore_reg(int loc);
 
 /* Procedure emitRM_Abs converts an absolute reference 
  * to a pc-relative reference when emitting a

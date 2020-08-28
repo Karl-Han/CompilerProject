@@ -29,6 +29,8 @@ void proc2(int brr[]){
     /* statement list test */
     ;;;
     proc2(arr);
+    arr[1] = 1;
+    read arr[2];
 }
 
 int brr[20];
