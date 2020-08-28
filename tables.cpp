@@ -16,7 +16,7 @@ SymInfo* init_syminfo(string name, int loc, int length, SymType type){
 SymTab* init_symtab(string name){
     SymTab* st = (SymTab*)malloc(sizeof(SymTab));
     st->name_table = name;
-    st->m = map<string, SymInfo*>();
+    st->m = new map<string, SymInfo*>();
 
     return st;
 }
@@ -39,8 +39,8 @@ void sym_insert(SymTab* t, string name, int lineno, int count, SymType type){
     }
     
     // find if the name is already appear in table
-    auto iter = t->m.find(name);
-    if (iter == t->m.end())
+    auto iter = t->m->find(name);
+    if (iter == t->m->end())
     {
         // no such symbol
         // insert new symbol
@@ -48,7 +48,7 @@ void sym_insert(SymTab* t, string name, int lineno, int count, SymType type){
         // CONFUSED, to be revise
         func2memloc[t->name_table] += count;
         si->refer_line.push_back(lineno);
-        t->m[name] = si;
+        (*t->m)[name] = si;
     }
     else{
         // find symbol
@@ -61,8 +61,8 @@ void sym_insert(SymTab* t, string name, int lineno, int count, SymType type){
 
 // symbol table look up
 SymInfo_ret sym_lookup(SymTab* t, string name){
-    auto iter = t->m.find(name);
-    if (iter == t->m.end())
+    auto iter = t->m->find(name);
+    if (iter == t->m->end())
     {
         // no such symbol
         // return memloc = -1
@@ -79,7 +79,7 @@ void print_symtab(SymTab *table, FILE *listing)
 {
     fprintf(listing, "Variable Name  Location   Type    Line Numbers\n");
     fprintf(listing, "-------------  --------  ------- ------------\n");
-    for (auto i = table->m.begin(); i != table->m.end(); i++)
+    for (auto i = table->m->begin(); i != table->m->end(); i++)
     {
         // for all string -> SymInfo*
         SymInfo *si = i->second;

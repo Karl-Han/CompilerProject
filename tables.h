@@ -37,7 +37,7 @@ typedef struct _SymInfo_ret{
 
 typedef struct _SymTab{
     string name_table;
-    map<string, SymInfo*> m;
+    map<string, SymInfo*>* m;
 }SymTab;
 
 SymTab* init_symtab(string);
