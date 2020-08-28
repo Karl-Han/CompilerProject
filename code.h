@@ -88,8 +88,8 @@ void emitBackup(int loc);
  */
 void emitRestore(void);
 
-void emitBackup_reg(int loc);
-void emitRestore_reg(int loc);
+void emitPush(int loc);
+void emitPop(int loc);
 
 /* Procedure emitRM_Abs converts an absolute reference 
  * to a pc-relative reference when emitting a
@@ -100,5 +100,7 @@ void emitRestore_reg(int loc);
  * c = a comment to be printed if TraceCode is TRUE
  */
 void emitRM_Abs(char *op, int r, int a, char *c);
+
+void loadAC_exactloc_Func(int);
 
 #endif

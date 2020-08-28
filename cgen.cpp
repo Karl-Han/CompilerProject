@@ -48,6 +48,7 @@ void generate_stmt(TreeNode *tree)
    switch ((yytokentype)tree->token)
    {
    case Token_if:
+   {
       if (TraceCode)
          emitComment("-> if");
 
@@ -96,8 +97,38 @@ void generate_stmt(TreeNode *tree)
       if (TraceCode)
          emitComment("<- if");
       break; /* if_k */
+   }
+   case Token_while:
+   {
+      if (TraceCode)
+         emitComment("-> while");
+      p1 = tree->child[0];
+      p2 = tree->child[1];
+      // savedLoc1 is the start of all repeat instruction
+      savedLoc1 = emitSkip(1);
+      emitComment("while: jump after body comes back here");
+
+      /* generate code for body */
+      code_generate_inner(p1);
+
+      // here to know where the predicate is
+      currentLoc = emitSkip(0);
+      emitBackup(savedLoc1);
+      // load next pc directly
+      emitRM("LDC", pc, currentLoc, 0, "while: jump to predicate");
+      emitRestore();
+
+      /* generate code for test */
+      code_generate_inner(p2);
+      // reg[ac] = 0
+      emitRM_Abs("JEQ", ac, savedLoc1 +1, "repeat: jmp back to body");
+      if (TraceCode)
+         emitComment("<- while");
+      break; 
+   }
 
    case Token_assign:
+   {
       if (TraceCode)
          emitComment("-> assign");
       /* generate code for rhs */
@@ -116,8 +147,9 @@ void generate_stmt(TreeNode *tree)
          // mem(reg[gp] + ac1) = ac
          emitRM("ST", ac, ac1, gp, "assign: store value");
       }
-      else{
-         emitBackup_reg(ac);
+      else
+      {
+         emitPush(ac);
          // if it is assign to a array element
          // exact loc is in `loc` in ac1
          emitRM("LD", ac1, loc, gp, "loading exact address of array stored in `loc`");
@@ -126,20 +158,29 @@ void generate_stmt(TreeNode *tree)
          // mem(reg[gp] + ac1 + offset) = ac
          // ac1 = ac1 + offset
          emitRO("ADD", ac1, ac, ac1, "calculate the address of the element");
-         emitRestore_reg(ac);
+         emitPop(ac);
          // store #ac to #gp + ac1
          emitRM("ST", ac, ac1, gp, "assign: store value");
       }
-      
+
       if (TraceCode)
          emitComment("<- assign");
       break; /* assign_k */
-
+   }
    case Token_read:
+   {
+      // ac <- value
       emitRO("IN", ac, 0, 0, "read integer value");
-      loc = st_lookup(tree->attr.name);
-      emitRM("ST", ac, loc, gp, "read: store value");
+      // loc = st_lookup(tree->attr.name);
+      SymInfo_ret ret = sym_lookup(symtabs[current_func], tree->str);
+      emitPush(ac);
+      loadAC_exactloc_Func(ret.loc);
+
+      // pop the input to #ac1
+      emitPop(ac1);
+      emitRM("ST", ac1, 0, ac, "read: store value");
       break;
+   }
    case Token_write:
       /* generate code for expression to write */
       code_generate_inner(tree->child[0]);

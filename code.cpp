@@ -87,24 +87,18 @@ void emitBackup( int loc)
 void emitRestore(void)
 { emitLoc = highEmitLoc;}
 
-void emitBackup_reg(int reg){
-  // store #reg = #temp
-  // store content in reg to mem
-  // calculate exact loc of offset
+void emitPush(int reg){
+  // push #reg to stack
   emitRM("ST", reg, offset_mp, gp, "store: temp value backuping");
-
-  // store mem to reg
-  emitRM("LD", tmp, offset_mp, gp, "load: load temp value to #tmp");
+  emitRM("LDC", tmp, 1, 0, "loading 1 to #tmp");
+  emitRO("SUB", offset_mp, offset_mp, tmp, "stack going upwards");
 }
 
-void emitRestore_reg(int reg){
-  // store #reg = #temp
-  // store content in reg to mem
-  // calculate exact loc of offset
-  emitRM("ST", tmp, offset_mp, gp, "store: temp value restoring");
-
-  // store mem to reg
+void emitPop(int reg){
+  // pop stack top to #reg
   emitRM("LD", reg, offset_mp, gp, "load: restoring temp value to #tmp");
+  emitRM("LDC", tmp, 1, 0, "loading 1 to #tmp");
+  emitRO("ADD", offset_mp, offset_mp, tmp, "stack going downwards");
 }
 
 /* Procedure emitRM_Abs
@@ -126,3 +120,13 @@ void emitRM_Abs( char *op, int r, int a, char * c)
   fprintf(code,"\n") ;
   if (highEmitLoc < emitLoc) highEmitLoc = emitLoc ;
 } /* emitRM_Abs */
+
+void loadAC_exactloc_Func(int loc){
+  // ac <- #func + loc(ac1)
+  emitPush(ac1);
+
+  emitRM("LDC", ac1, loc, 0, "loading loc to ac1");
+  emitRO("ADD", ac, ac1, func, "adding: #func + loc");
+
+  emitPop(ac1);
+}
