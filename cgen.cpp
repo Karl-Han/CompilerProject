@@ -135,12 +135,12 @@ void generate_stmt(TreeNode *tree)
          emitComment("<- assign");
       break; /* assign_k */
 
-   case ReadK:
+   case Token_read:
       emitRO("IN", ac, 0, 0, "read integer value");
       loc = st_lookup(tree->attr.name);
       emitRM("ST", ac, loc, gp, "read: store value");
       break;
-   case WriteK:
+   case Token_write:
       /* generate code for expression to write */
       code_generate_inner(tree->child[0]);
       /* now output it */

@@ -122,24 +122,10 @@ void insert_node(TreeNode *t)
     switch (t->token)
     {
     case Token_read:{
+        // this is insert_node instead of check node
         tmp = t;
-        SymInfo_ret ret = sym_lookup(symtabs[current_func], t->str);
-        if (ret.type == Void)
-        {
-            // error
-            printf("Refer to %s before declaration.\n", t->str);
-            exit(1);
-        }
-        else if (ret.type == Array && t->num < 0)
-        {
-            // there must be value in .num
-            printf("Refer to Array(%s) with neg index %d.\n", t->str, t->num);
-            exit(1);
-        }
-        else{
-            type = Integer;
-            counter = 1;
-        }
+        counter = 1;
+        type = Integer;
         break;
     }
     case Token_var_dec:
@@ -419,6 +405,24 @@ void check_node(TreeNode *t)
         break;
 
     // Below is the statement check
+    case Token_read:{
+        SymInfo_ret ret = sym_lookup(symtabs[current_func], t->str);
+        if (ret.type == Void)
+        {
+            // error
+            printf("Refer to %s before declaration.\n", t->str);
+            exit(1);
+        }
+        else if (ret.type == Array && t->num < 0)
+        {
+            // there must be value in .num
+            printf("Refer to Array(%s) with neg index %d.\n", t->str, t->num);
+            exit(1);
+        }
+        // if it is a valid Integer, done
+        break;
+    }
+    case Token_write:
     case Token_if:
     case Token_while:
         if (t->child[0]->type == 1)

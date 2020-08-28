@@ -19,6 +19,7 @@ int arr[10];
 int main(int num1, int num3){
     num1 = 123;
     num3 = 456;
+    write num1;
     return num1 + num3 + 1;
 }
 
