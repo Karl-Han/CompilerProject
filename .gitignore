@@ -45,3 +45,5 @@ output
 debug_output
 patches/
 tiny_files/
+recover_parameter
+return_statement

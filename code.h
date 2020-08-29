@@ -103,4 +103,8 @@ void emitRM_Abs(char *op, int r, int a, char *c);
 
 void loadAC_exactloc_Func(int);
 
+void inc_reg(int);
+
+void dec_reg(int);
+
 #endif

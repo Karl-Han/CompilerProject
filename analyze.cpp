@@ -8,7 +8,11 @@ extern "C"
 #define MAXCHILDREN 4
 static char *TYPE[] = {"VOID", "INTEGER", "ARRAY"};
 
-string current_func;
+namespace analyze
+{
+    string current_func;
+} // namespace analyze
+
 
 void seg_fault()
 {
@@ -42,7 +46,7 @@ vector<ParaInstant *> *get_param(TreeNode *para)
 }
 
 // used to traverse the tree structure
-// also change the current_function during the process
+// also change the analyze::current_function during the process
 void traverse(TreeNode *t, void (*preProc)(TreeNode *), void (*postProc)(TreeNode *))
 {
     if (t != NULL)
@@ -62,15 +66,15 @@ void traverse(TreeNode *t, void (*preProc)(TreeNode *), void (*postProc)(TreeNod
         {
             // this is a fucntion node
             // set the env to the new func
-            current_func = t->str;
+            analyze::current_func = t->str;
 
             // init function table if no find
-            if (symtabs.find(current_func) == symtabs.end())
+            if (symtabs.find(analyze::current_func) == symtabs.end())
             {
                 // this is a new function
                 // 1. create new symbol table for func
                 // 2. insert into function table
-                symtabs[current_func] = init_symtab(current_func);
+                symtabs[analyze::current_func] = init_symtab(analyze::current_func);
                 int type;
 
                 // deal with return type
@@ -97,7 +101,7 @@ void traverse(TreeNode *t, void (*preProc)(TreeNode *), void (*postProc)(TreeNod
                 }
 
                 vector<ParaInstant *> *param = get_param(t->child[2]);
-                functabs[current_func] = init_functab(current_func, param, type);
+                functabs[analyze::current_func] = init_functab(analyze::current_func, param, type);
             }
 
             for (int i = 0; i < MAXCHILDREN; i++)
@@ -105,7 +109,7 @@ void traverse(TreeNode *t, void (*preProc)(TreeNode *), void (*postProc)(TreeNod
                 traverse(t->child[i], preProc, postProc);
             }
             // restore the env
-            current_func = "global";
+            analyze::current_func = "global";
 
             traverse(t->sibling, preProc, postProc);
         }
@@ -197,7 +201,7 @@ void insert_node(TreeNode *t)
         }
         if (t->child[1]->token == (int)Token_identifier)
         {
-            sym_insert(symtabs[current_func], t->child[1]->str, t->child[1]->lineno, 1, Integer);
+            sym_insert(symtabs[analyze::current_func], t->child[1]->str, t->child[1]->lineno, 1, Integer);
         }
         break;
     }
@@ -216,7 +220,7 @@ void insert_node(TreeNode *t)
     if (tmp != nullptr)
     {
         // do insert
-        sym_insert(symtabs[current_func], tmp->str, tmp->lineno, counter, type);
+        sym_insert(symtabs[analyze::current_func], tmp->str, tmp->lineno, counter, type);
     }
 }
 
@@ -225,10 +229,19 @@ void null_proc(TreeNode *t)
     return;
 }
 
+void init_functabs_size(){
+    for (auto i = functabs.begin(); i != functabs.end(); i++)
+    {
+        // i is (string, FuncTab*)
+        // for each functab
+        init_functab_size(i->second);
+    }
+}
+
 // build symbol tables
 void build_symtabs(TreeNode *t)
 {
-    current_func = "global";
+    analyze::current_func = "global";
     symtabs = map<string, SymTab *>();
     // could be delete because no funcion recursion
     //  when building symbol table
@@ -243,10 +256,12 @@ void build_symtabs(TreeNode *t)
     output->push_back(pi);
     functabs["output"] = init_functab("output", output, 1);
 
-    symtabs[current_func] = init_symtab(current_func);
+    symtabs[analyze::current_func] = init_symtab(analyze::current_func);
 
     // traverse(t, insert_node, wrap_up);
     traverse(t, insert_node, null_proc);
+
+    init_functabs_size();
 }
 
 // print symbol tables
@@ -265,8 +280,8 @@ void print_symtabs(FILE *listing)
 // print function tables
 void print_functabs(FILE *listing)
 {
-    fprintf(listing, "%-16s%-10s%s\n", "function", "return", "parameters");
-    fprintf(listing, "-------------   --------  --------------------\n");
+    fprintf(listing, "%-16s%-10s%-15s%s\n", "function", "return", "functab size", "parameters");
+    fprintf(listing, "-------------   --------  -----------  --------------------\n");
     for (auto m = functabs.begin(); m != functabs.end(); m++)
     {
         // string func_name = m->first;
@@ -330,7 +345,7 @@ void check_node(TreeNode *t)
 
         // check argument type and number
         // use vector to indicate sequence instead of map
-        // map<string, int>* params = get_paras_list_functab(functabs[current_func]);
+        // map<string, int>* params = get_paras_list_functab(functabs[analyze::current_func]);
         const vector<ParaInstant *> *params = get_paras_list_functab(functabs[t->str]);
         TreeNode *exp = t->child[1];
         bool valid = true;
@@ -373,7 +388,7 @@ void check_node(TreeNode *t)
             printf("Invalid variable type Void for %s", t->str);
             seg_fault();
         }
-        SymInfo_ret si = sym_lookup(symtabs[current_func], t->str);
+        SymInfo_ret si = sym_lookup(symtabs[analyze::current_func], t->str);
         if (si.type == Array)
         {
             // this symbol is array
@@ -406,7 +421,7 @@ void check_node(TreeNode *t)
 
     // Below is the statement check
     case Token_read:{
-        SymInfo_ret ret = sym_lookup(symtabs[current_func], t->str);
+        SymInfo_ret ret = sym_lookup(symtabs[analyze::current_func], t->str);
         if (ret.type == Void)
         {
             // error
@@ -440,7 +455,7 @@ void check_node(TreeNode *t)
         // 1. var in symtab
         // 2. var is Integer type
         // underneath will deal with var's type
-        SymInfo_ret ret = sym_lookup(symtabs[current_func], t->str);
+        SymInfo_ret ret = sym_lookup(symtabs[analyze::current_func], t->str);
         if (ret.type == Void)
         {
             // no such symbol
@@ -465,7 +480,7 @@ void check_node(TreeNode *t)
     case Token_return:
     {
         bool valid = 1;
-        int ret_type = functabs[current_func]->ret_type;
+        int ret_type = functabs[analyze::current_func]->ret_type;
         if (t->child[0] == nullptr)
         {
             // 1 for void, 2 for int
@@ -502,7 +517,7 @@ void check_node(TreeNode *t)
         }
         else
         {
-            printf("Mismatch return type in function `%s`", current_func.c_str());
+            printf("Mismatch return type in function `%s`", analyze::current_func.c_str());
         }
         break;
     }
@@ -516,7 +531,7 @@ void check_node(TreeNode *t)
 
 void type_check(TreeNode *t)
 {
-    current_func = "global";
+    analyze::current_func = "global";
     traverse(t, null_proc, check_node);
 }
 

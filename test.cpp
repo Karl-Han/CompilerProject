@@ -43,9 +43,10 @@ extern "C"{
     char* gen_dot_str(TreeNode* t);
 }
 #include "analyze.h"
+#include "cgen.h"
 
 extern TreeNode *root;
-FILE* code;
+FILE* code = stdout;
 bool TraceCode = true;
 
 void print_node(TreeNode *tn)
@@ -93,5 +94,7 @@ int main()
     printf("Passed type checking.\n");
     
     tag_kind(syntax_tree);
+
+    // code_generate(syntax_tree);
     return 0;
 }

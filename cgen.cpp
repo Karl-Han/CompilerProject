@@ -28,15 +28,49 @@ void code_generate_inner(TreeNode *tree)
       default:
          break;
       }
-      code_generate(tree->sibling);
+      code_generate_inner(tree->sibling);
    }
 }
 
 void code_generate(TreeNode *tree)
 {
-   // start with the function main
-   current_func = "main";
+   // all the comments are start with `*`
+   emitComment("TINY Compilation to TM Code");
+
+   /* generate standard prelude */
+   emitComment("Standard prelude:");
+   emitRM("LD", offset_mp, 0, ac, "load maxaddress from location 0");
+   emitRM("ST", ac, 0, ac, "clear location 0");
+   emitComment("End of standard prelude.");
+
+   /* generate code for TINY program */
    code_generate_inner(tree);
+
+   /* finish */
+   emitComment("End of execution.");
+   emitRO("HALT", 0, 0, 0, "");
+   // start with the function main
+}
+
+// generate fix up of the function
+// offset_mp now points to the next element
+// of the parameter number
+void return_stmt(TreeNode *t)
+{
+   // if exp return some value, it will be in ac
+   if (t->child[0] != nullptr)
+   {
+      code_generate_inner(t->child[0]);
+   }
+
+   // recover registers
+   // #top = #func
+   emitPush(func);
+   emitPop(top);
+   // #func = mem(#offset +2)
+   emitRM("LD", func, 2, offset_mp, "loading: restoring old #func");
+   // #pc= mem(#offset +3)
+   emitRM("LD", pc, 3, offset_mp, "loading: restoring old #pc");
 }
 
 void generate_stmt(TreeNode *tree)
@@ -47,6 +81,97 @@ void generate_stmt(TreeNode *tree)
    int loc;
    switch ((yytokentype)tree->token)
    {
+   case Token_read:
+   {
+      // ac <- value
+      emitRO("IN", ac, 0, 0, "read integer value");
+      // loc = st_lookup(tree->attr.name);
+      SymInfo_ret ret = sym_lookup(symtabs[current_func], tree->str);
+      emitPush(ac);
+      loadAC_exactloc_Func(ret.loc);
+
+      // pop the input to #ac1
+      emitPop(ac1);
+      emitRM("ST", ac1, 0, ac, "read: store value");
+      break;
+   }
+   case Token_write:
+   {
+      /* generate code for expression to write */
+      code_generate_inner(tree->child[0]);
+      /* now output it */
+      emitRO("OUT", ac, 0, 0, "write ac");
+      break;
+   }
+   case Token_compound:
+   {
+      code_generate_inner(tree->child[0]);
+      code_generate_inner(tree->child[1]);
+      break;
+   }
+   case Token_func:
+   {
+      if (tree->str != "main")
+      {
+         // get the start position of the function
+         functabs[tree->str]->vmcode_startpos = emitSkip(0);
+
+         // in generating order
+         // initialization
+         // ac <- param + 3
+         emitRM("LDC", ac, 3, offset_mp, "loading: ac <- #offset + 3");
+         // param = mem(#offset +1)
+         emitRM("LD", ac1, 1, offset_mp, "loading: para num to ac1");
+         emitPush(ac);
+         emitPop(tmp);
+         emitRO("ADD", ac, ac, ac1, "adding: ac = ac + params");
+         // ac1 <- 0
+         emitRM("LDC", ac1, 0, 0, "loading: ac1 <- 0");
+
+         // loc1
+         // saved for future restore
+         savedLoc1 = emitSkip(0);
+         // loop predicate
+         // stop when ac == tmp
+         // #tmp = #offset_mp + 3
+         emitRM("LDA", tmp, 3, offset_mp, "loading: next ele after last ele of func");
+         emitRO("SUB", tmp, ac, tmp, "subtracting: tmp <- ac - param");
+
+         savedLoc2 = emitSkip(1);
+
+         // loc2+1
+         // body
+         // LD  tmp, ac, gp
+         emitRM("LD", tmp, ac, gp, "loading: get parameter");
+         // ST  tmp, ac1, func
+         emitRM("ST", tmp, ac1, func, "storing: storing first parameter");
+         // increase ac1 by 1
+         inc_reg(ac1);
+         // decrease ac by 1
+         // SUB ac, ac, 1
+         dec_reg(ac);
+         // LDC pc, loc2
+         emitRM("LDC", pc, savedLoc1, gp, "jumping: unconditionally jump to savedLoc1");
+
+         // loc2:
+         // JLE tmp, loc3, gp       // jump out
+         currentLoc = emitSkip(0);
+         emitBackup(savedLoc2);
+         emitRM("JLE", tmp, currentLoc, gp, "jumping: to currentLoc if finished");
+         emitRestore();
+
+         // loc3:
+         // generate compound_st
+         code_generate_inner(tree->child[3]);
+
+         // ToDo: fix up the rest of return
+         TreeNode *tn_tmp = new TreeNode();
+         return_stmt(tn_tmp);
+         free(tn_tmp);
+      }
+
+      break;
+   }
    case Token_if:
    {
       if (TraceCode)
@@ -121,10 +246,10 @@ void generate_stmt(TreeNode *tree)
       /* generate code for test */
       code_generate_inner(p2);
       // reg[ac] = 0
-      emitRM_Abs("JEQ", ac, savedLoc1 +1, "repeat: jmp back to body");
+      emitRM_Abs("JEQ", ac, savedLoc1 + 1, "repeat: jmp back to body");
       if (TraceCode)
          emitComment("<- while");
-      break; 
+      break;
    }
 
    case Token_assign:
@@ -167,26 +292,6 @@ void generate_stmt(TreeNode *tree)
          emitComment("<- assign");
       break; /* assign_k */
    }
-   case Token_read:
-   {
-      // ac <- value
-      emitRO("IN", ac, 0, 0, "read integer value");
-      // loc = st_lookup(tree->attr.name);
-      SymInfo_ret ret = sym_lookup(symtabs[current_func], tree->str);
-      emitPush(ac);
-      loadAC_exactloc_Func(ret.loc);
-
-      // pop the input to #ac1
-      emitPop(ac1);
-      emitRM("ST", ac1, 0, ac, "read: store value");
-      break;
-   }
-   case Token_write:
-      /* generate code for expression to write */
-      code_generate_inner(tree->child[0]);
-      /* now output it */
-      emitRO("OUT", ac, 0, 0, "write ac");
-      break;
    default:
       break;
    }
@@ -199,61 +304,6 @@ void generate_exp(TreeNode *tree)
    switch ((yytokentype)tree->token)
    {
 
-   case Token_number:
-      if (TraceCode)
-         emitComment("-> Const");
-      /* gen code to load integer constant using LDC */
-      emitRM("LDC", ac, tree->num, 0, "load const");
-      if (TraceCode)
-         emitComment("<- Const");
-      break; /* ConstK */
-
-   case Token_var:
-   {
-      if (TraceCode)
-         emitComment("-> Id");
-      // loc = st_lookup(tree->attr.name);
-      // loc is relative location
-      SymInfo_ret ret = sym_lookup(symtabs[current_func], tree->str);
-      loc = ret.loc;
-
-      if (ret.type == Integer)
-      {
-         // it is just totally a integer
-         // get the exact location = reg[func] + loc
-         emitRM("LD", ac, loc, func, "load id value");
-      }
-      else
-      {
-         // two case:
-         // 1. refer as integer
-         // 2. refer the whole array
-         if (tree->child[0] == nullptr)
-         {
-            // refer the whole array
-            // load its location
-            printf("CGEN ERROR, get a array variable.");
-            exit(1);
-         }
-         else
-         {
-            // get the offset of the element in the array
-            // store in ac
-            code_generate_inner(tree->child[0]);
-
-            // get the exact location of the array
-            // in the first element
-            emitRM("LDA", ac1, loc, func, "loading exact location of array");
-            emitRO("ADD", ac, ac, ac1, "getting the exact element location");
-            emitRO("LD", ac, ac, gp, "loading the element content");
-         }
-      }
-
-      if (TraceCode)
-         emitComment("<- Id");
-      break; /* IdK */
-   }
-
    case Token_plus:
    case Token_minus:
    case Token_multiply:
@@ -264,20 +314,22 @@ void generate_exp(TreeNode *tree)
    case Token_moreEqual:
    case Token_equal:
    case Token_noEqual:
+   {
       if (TraceCode)
          emitComment("-> Op");
       p1 = tree->child[0];
       p2 = tree->child[1];
       /* gen code for ac = left arg */
-      code_generate(p1);
+      code_generate_inner(p1);
       /* gen code to push left operand */
-      // use a temp reg to store thing
-      emitRM("ST", ac, tmpOffset--, mp, "op: push left");
+      // use a temp mem
+      emitPush(ac);
       /* gen code for ac = right operand */
-      code_generate(p2);
+      // the stack should be balanced
+      code_generate_inner(p2);
       /* now load left operand */
-      // What is the purpose of this statement
-      emitRM("LD", ac1, ++tmpOffset, mp, "op: load left");
+      // pop the temp value
+      emitPop(ac1);
 
       // all of them manipulate ac
       switch ((yytokentype)tree->token)
@@ -343,6 +395,102 @@ void generate_exp(TreeNode *tree)
       if (TraceCode)
          emitComment("<- Op");
       break; /* OpK */
+   }
+
+   case Token_call:{
+      TreeNode* tn_tmp = tree->child[1];
+      if (tn_tmp == nullptr || tn_tmp->token == Token_void)
+      {
+         // no parameter
+      }
+      else{
+         // insert parameter
+         while (tn_tmp != nullptr)
+         {
+            // push all parameters
+            code_generate_inner(tn_tmp);
+            emitPush(ac);
+         }
+         
+         // push registers: PC, func, paras
+         int paras_num = functabs[tree->str]->para_type_list->size();
+         emitPush(pc);
+         emitPush(func);
+         emitPush(paras_num);
+
+         // set registers: func, top, PC
+         emitPush(top);
+         emitPop(func);
+         emitRM("LDC", tmp, functabs[tree->str]->table_size, 0, "loading: load the size of function table");
+         emitRO("ADD", top, top, tmp, "adding: top = old top + table size");
+         emitRM("LDC", pc, functabs[tree->str]->vmcode_startpos, 0, "loading: const start pos to PC");
+
+         // jump back to here after function
+         // clean up the stack for other instructions
+         for (size_t i = 0; i < paras_num +3; i++)
+         {
+            emitPop(ac1);
+         }
+      }
+      
+      break;
+   }
+
+   case Token_var:
+   {
+      if (TraceCode)
+         emitComment("-> Id");
+      // loc = st_lookup(tree->attr.name);
+      // loc is relative location
+      SymInfo_ret ret = sym_lookup(symtabs[current_func], tree->str);
+      loc = ret.loc;
+
+      if (ret.type == Integer)
+      {
+         // it is just totally a integer
+         // get the exact location = reg[func] + loc
+         emitRM("LD", ac, loc, func, "load id value");
+      }
+      else
+      {
+         // two case:
+         // 1. refer as integer
+         // 2. refer the whole array
+         if (tree->child[0] == nullptr)
+         {
+            // refer the whole array
+            // load its location
+            printf("CGEN ERROR, get a array variable.");
+            exit(1);
+         }
+         else
+         {
+            // get the offset of the element in the array
+            // store in ac
+            code_generate_inner(tree->child[0]);
+
+            // get the exact location of the array
+            // in the first element
+            emitRM("LDA", ac1, loc, func, "loading exact location of array");
+            emitRO("ADD", ac, ac, ac1, "getting the exact element location");
+            emitRO("LD", ac, ac, gp, "loading the element content");
+         }
+      }
+
+      if (TraceCode)
+         emitComment("<- Id");
+      break; /* IdK */
+   }
+   case Token_number:
+   {
+      if (TraceCode)
+         emitComment("-> Const");
+      /* gen code to load integer constant using LDC */
+      emitRM("LDC", ac, tree->num, 0, "load const");
+      if (TraceCode)
+         emitComment("<- Const");
+      break; /* ConstK */
+   }
 
    default:
       break;

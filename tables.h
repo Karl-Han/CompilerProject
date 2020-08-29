@@ -25,6 +25,7 @@ typedef struct _SymInfo
     // relative memory location
     int memloc;
     // length of the symbol
+    // for array is exact length +1
     int length;
     vector<int> refer_line;
     SymType type;
@@ -72,9 +73,15 @@ typedef struct {
     // 1 for int, 2 for array
     map<string, int>* para_type_map;
     vector<ParaInstant*>* para_type_list;
+    // the occupation size of the table
+    int table_size;
+    // TM code start pos
+    int vmcode_startpos;
 } FuncTab;
 
 FuncTab* init_functab(std::string name, vector<ParaInstant*>* para_list, int type);
+
+void init_functab_size(FuncTab*);
 
 int get_ret_type_functab(FuncTab* ft);
 

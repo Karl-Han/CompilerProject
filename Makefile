@@ -18,9 +18,9 @@ PARSER   = parser.y
 CC       = gcc
 CPP      = g++
 OBJ      = lex.yy.o y.tab.o test.o gen_dot.o 
-OBJCPP	 = analyze.o tables.o
+OBJCPP	 = analyze.o tables.o cgen.o code.o
 SRC      = lex.yy.c y.tab.c gen_dot.c 
-SRCPP	 = analyze.cpp tables.cpp test.cpp
+SRCPP	 = analyze.cpp tables.cpp test.cpp cgen.cpp code.cpp
 # TESTOUT  = $(basename $(TESTFILE)).asm
 OUTFILES = lex.yy.c y.tab.c y.tab.h y.output $(OUT)
 

@@ -45,8 +45,16 @@ void sym_insert(SymTab* t, string name, int lineno, int count, SymType type){
         // no such symbol
         // insert new symbol
         SymInfo* si = init_syminfo(name, func2memloc[t->name_table], count, type);
-        // CONFUSED, to be revise
-        func2memloc[t->name_table] += count;
+        if (type == Array)
+        {
+            // one extra memory space for exact location
+            func2memloc[t->name_table] += (count +1);
+        }
+        else{
+            // other is just a integer
+            func2memloc[t->name_table] += 1;
+        }
+        
         si->refer_line.push_back(lineno);
         (*t->m)[name] = si;
     }
@@ -56,7 +64,6 @@ void sym_insert(SymTab* t, string name, int lineno, int count, SymType type){
         // use second to manipulate it
         iter->second->refer_line.push_back(lineno);
     }
-    
 }
 
 // symbol table look up
@@ -125,6 +132,10 @@ FuncTab* init_functab(std::string name, vector<ParaInstant*>* para_list, int typ
     return ft;
 }
 
+void init_functab_size(FuncTab* ft){
+    ft->table_size = func2memloc[ft->func_name];
+}
+
 int get_ret_type_functab(FuncTab* ft){
     return ft->ret_type;
 }
@@ -140,6 +151,8 @@ const vector<ParaInstant*>* get_paras_list_functab(FuncTab* ft){
 
 void print_functab(FuncTab* ft, FILE* f){
     fprintf(f, "%-14s ", ft->func_name.c_str());
+
+    // print return type
     switch (ft->ret_type)
     {
     // 1 for void, 2 for int
@@ -159,6 +172,11 @@ void print_functab(FuncTab* ft, FILE* f){
         exit(1);
         break;
     }
+
+    // print function variable occupation
+    fprintf(f, " %-12d ", ft->table_size);
+
+    // parameters
     for (auto &i : *ft->para_type_map)
     {
         string s;
@@ -178,5 +196,4 @@ void print_functab(FuncTab* ft, FILE* f){
         }
         fprintf(f, " %s(%s) ", s.c_str(), i.first.c_str());
     }
-    
 }
