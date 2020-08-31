@@ -10,7 +10,7 @@ using std::string;
 using std::vector;
 using std::map;
 
-static map<string, int> func2memloc;
+extern map<string, int> func2memloc;
 
 typedef enum {
     Void,

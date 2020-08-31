@@ -9,9 +9,11 @@ extern "C"
 
 extern bool TraceCode;
 
-vector<string> func_stack;
+// vector<string> func_stack;
 string current_func;
-static int tmpOffset = 0;
+// static int tmpOffset = 0;
+static int prelude2main;
+static int main_ret_loc;
 
 void code_generate_inner(TreeNode *tree)
 {
@@ -32,24 +34,92 @@ void code_generate_inner(TreeNode *tree)
    }
 }
 
+int prelude_global(){
+   // find out the size of global
+   // #func = global_size
+   int global_size = func2memloc["global"];
+   emitRM("LDC", func, global_size, 0, "loading: #func starts from global size");
+
+   // initialize all the array variable
+   string s = "global";
+   SymTab* st = (*symtabs)[s];
+   map<string, SymInfo*>* m = st->m;
+   for(auto i = m->begin(); i != m->end(); i++) {
+      // for all the symbols
+      SymInfo* si = i->second;
+
+      // only deal with array
+      if (si->type == Array)
+      {
+         // the exact location
+         int memloc = si->memloc;
+         // memory layout:
+         // [0]:exact location, [1..]: elements
+         // so the start location is memloc +1
+         // mem(memloc) = memloc +1
+         emitRM("LDC", tmp, memloc +1, 0, "loading: loading global array's location");
+         emitRM("ST", tmp, memloc, gp, "storing: storing global array's exact location");
+      }
+   }
+   return global_size;
+}
+
+void prelude(TreeNode* t){
+   // all the comments are start with `*`
+   emitComment("MiniC Compilation to TM Code");
+
+   // initialize offset and mp
+   emitComment("Standard prelude:");
+   emitRM("LD", offset_mp, 0, ac, "load offset from location 0");
+   emitRM("LD", mp, 0, ac, "load maxaddress from location 0");
+   emitRM("ST", ac, 0, ac, "clear location 0");
+
+   // initialize gp
+   emitRM("LDC", gp, 0, 0, "loading: initialize gp to 0");
+
+   // allocate memory location for global variable
+   // #func = global_size
+   int global_size = prelude_global();
+
+   // initilize top
+   string s = "main";
+   auto main_pt = functabs->find("main");
+   if (main_pt == functabs->end())
+   {
+      // no main function
+      printf("No main function, please check the file.\n");
+      exit(1);
+   }
+   FuncTab* main = main_pt->second;
+   
+   int main_size = main->table_size;
+   emitRM("LDC", top, global_size + main_size, 0, "loading: initialize top to main's size");
+
+   // this emitLoc should be wait until main appear
+   // int main_startloc = main->vmcode_startpos;
+   // emitRM("LDC", pc, main_startloc, 0, "loading: initialize pc to start loc");
+   emitComment("Skip for jumping to main");
+   prelude2main = emitSkip(1);
+
+   emitComment("End of standard prelude.");
+}
+
 void code_generate(TreeNode *tree)
 {
-   // all the comments are start with `*`
-   emitComment("TINY Compilation to TM Code");
-
-   /* generate standard prelude */
-   emitComment("Standard prelude:");
-   emitRM("LD", offset_mp, 0, ac, "load maxaddress from location 0");
-   emitRM("ST", ac, 0, ac, "clear location 0");
-   emitComment("End of standard prelude.");
+   // prelude for initialization
+   prelude(tree);
 
    /* generate code for TINY program */
    code_generate_inner(tree);
 
-   /* finish */
-   emitComment("End of execution.");
+   // finish for main's return
+   emitComment("End of execution. And dst of main's return");
+   int currentLoc = emitSkip(0);
+   emitBackup(main_ret_loc);
+   emitRM("LDC", pc, currentLoc, 0, "loading: loading halt loc to pc for main's return");
+   emitRestore();
+
    emitRO("HALT", 0, 0, 0, "");
-   // start with the function main
 }
 
 // generate fix up of the function
@@ -86,7 +156,7 @@ void generate_stmt(TreeNode *tree)
       // ac <- value
       emitRO("IN", ac, 0, 0, "read integer value");
       // loc = st_lookup(tree->attr.name);
-      SymInfo_ret ret = sym_lookup(symtabs[current_func], tree->str);
+      SymInfo_ret ret = sym_lookup((*symtabs)[current_func], tree->str);
       emitPush(ac);
       loadAC_exactloc_Func(ret.loc);
 
@@ -113,8 +183,9 @@ void generate_stmt(TreeNode *tree)
    {
       if (tree->str != "main")
       {
+         current_func = tree->str;
          // get the start position of the function
-         functabs[tree->str]->vmcode_startpos = emitSkip(0);
+         (*functabs)[tree->str]->vmcode_startpos = emitSkip(0);
 
          // in generating order
          // initialization
@@ -168,6 +239,15 @@ void generate_stmt(TreeNode *tree)
          TreeNode *tn_tmp = new TreeNode();
          return_stmt(tn_tmp);
          free(tn_tmp);
+      }
+      else{
+         current_func = "main";
+         // if the function is main
+         // no argument pass but prelude need to jump here
+         currentLoc = emitSkip(0);
+         emitBackup(prelude2main);
+         emitRM("LDC", pc, currentLoc, 0, "loading: load main location to prelude's PC");
+         emitRestore();
       }
 
       break;
@@ -251,7 +331,6 @@ void generate_stmt(TreeNode *tree)
          emitComment("<- while");
       break;
    }
-
    case Token_assign:
    {
       if (TraceCode)
@@ -260,7 +339,7 @@ void generate_stmt(TreeNode *tree)
       // finally the result is in reg[ac]
       code_generate_inner(tree->child[0]);
       /* now store value */
-      SymInfo_ret ret = sym_lookup(symtabs[current_func], tree->str);
+      SymInfo_ret ret = sym_lookup((*symtabs)[current_func], tree->str);
       // relative loc
       loc = ret.loc;
       if (ret.type == Integer)
@@ -291,6 +370,20 @@ void generate_stmt(TreeNode *tree)
       if (TraceCode)
          emitComment("<- assign");
       break; /* assign_k */
+   }
+   case Token_return:
+   {
+      if (current_func == "main")
+      {
+         // just jump to the halt
+         main_ret_loc = emitSkip(1);
+      }
+      else{
+         // return things
+         return_stmt(tree);
+      }
+      
+      break;
    }
    default:
       break;
@@ -397,13 +490,17 @@ void generate_exp(TreeNode *tree)
       break; /* OpK */
    }
 
-   case Token_call:{
-      TreeNode* tn_tmp = tree->child[1];
+   case Token_call:
+   {
+
+      // step1: pass all the paramters by stack
+      TreeNode *tn_tmp = tree->child[1];
       if (tn_tmp == nullptr || tn_tmp->token == Token_void)
       {
          // no parameter
       }
-      else{
+      else
+      {
          // insert parameter
          while (tn_tmp != nullptr)
          {
@@ -411,38 +508,37 @@ void generate_exp(TreeNode *tree)
             code_generate_inner(tn_tmp);
             emitPush(ac);
          }
-         
+
          // push registers: PC, func, paras
-         int paras_num = functabs[tree->str]->para_type_list->size();
+         int paras_num = (*functabs)[tree->str]->para_type_list->size();
          emitPush(pc);
          emitPush(func);
+         // ALERT: it is really necessary?
          emitPush(paras_num);
 
          // set registers: func, top, PC
          emitPush(top);
          emitPop(func);
-         emitRM("LDC", tmp, functabs[tree->str]->table_size, 0, "loading: load the size of function table");
+         emitRM("LDC", tmp, (*functabs)[tree->str]->table_size, 0, "loading: load the size of function table");
          emitRO("ADD", top, top, tmp, "adding: top = old top + table size");
-         emitRM("LDC", pc, functabs[tree->str]->vmcode_startpos, 0, "loading: const start pos to PC");
+         emitRM("LDC", pc, (*functabs)[tree->str]->vmcode_startpos, 0, "loading: const start pos to PC");
 
          // jump back to here after function
          // clean up the stack for other instructions
-         for (size_t i = 0; i < paras_num +3; i++)
+         for (size_t i = 0; i < paras_num + 3; i++)
          {
             emitPop(ac1);
          }
       }
-      
       break;
    }
-
    case Token_var:
    {
       if (TraceCode)
          emitComment("-> Id");
       // loc = st_lookup(tree->attr.name);
       // loc is relative location
-      SymInfo_ret ret = sym_lookup(symtabs[current_func], tree->str);
+      SymInfo_ret ret = sym_lookup((*symtabs)[current_func], tree->str);
       loc = ret.loc;
 
       if (ret.type == Integer)

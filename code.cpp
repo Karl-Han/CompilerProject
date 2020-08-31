@@ -90,17 +90,15 @@ void emitRestore(void)
 void emitPush(int reg){
   // push #reg to stack
   emitRM("ST", reg, offset_mp, gp, "store: temp value backuping");
-  // emitRM("LDC", tmp, 1, 0, "loading 1 to #tmp");
-  // emitRO("SUB", offset_mp, offset_mp, tmp, "stack going upwards");
-  inc_reg(offset_mp);
+  emitRM("LDC", tmp, 1, 0, "loading 1 to #tmp");
+  emitRO("SUB", offset_mp, offset_mp, tmp, "stack going upwards");
 }
 
 void emitPop(int reg){
   // pop stack top to #reg
   emitRM("LD", reg, offset_mp, gp, "load: restoring temp value to #tmp");
-  // emitRM("LDC", tmp, 1, 0, "loading 1 to #tmp");
-  // emitRO("ADD", offset_mp, offset_mp, tmp, "stack going downwards");
-  inc_reg(offset_mp);
+  emitRM("LDC", tmp, 1, 0, "loading 1 to #tmp");
+  emitRO("ADD", offset_mp, offset_mp, tmp, "stack going downwards");
 }
 
 /* Procedure emitRM_Abs

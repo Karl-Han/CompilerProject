@@ -53,6 +53,7 @@
         "ratio": "cpp",
         "streambuf": "cpp",
         "tuple": "cpp",
-        "unordered_map": "cpp"
+        "unordered_map": "cpp",
+        "iosfwd": "cpp"
     }
 }

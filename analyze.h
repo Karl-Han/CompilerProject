@@ -9,8 +9,8 @@ extern "C"{
 #include <string>
 #include <map>
 
-static map<string, SymTab *> symtabs;
-static map<string, FuncTab*> functabs;
+extern map<string, SymTab *>* symtabs;
+extern map<string, FuncTab*>* functabs;
 
 void build_symtabs(TreeNode *);
 void print_symtabs(FILE* listing);

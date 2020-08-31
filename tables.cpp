@@ -1,5 +1,7 @@
 #include "tables.h"
 
+map<string, int> func2memloc;
+
 SymInfo* init_syminfo(string name, int loc, int length, SymType type){
     SymInfo* si = (SymInfo*)malloc(sizeof(SymInfo));
 
@@ -73,12 +75,21 @@ SymInfo_ret sym_lookup(SymTab* t, string name){
     {
         // no such symbol
         // return memloc = -1
+
+        // SymInfo_ret* ret = new SymInfo_ret();
+        // ret->loc = -1;
+        // ret->type = Void;
+        // return ret;
         return {.loc = -1,.type = SymType::Void};
     }
     else{
         // find symbol
         // return correct info
-        return {.loc = iter->second->memloc, .type = iter->second->type};
+        // SymInfo_ret* ret = new SymInfo_ret();
+        // ret->loc = iter->second->memloc;
+        // ret->type = iter->second->type;
+        // return ret;
+        return {.loc = iter->second->memloc,.type = iter->second->type};
     }
 }
 

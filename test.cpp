@@ -95,6 +95,6 @@ int main()
     
     tag_kind(syntax_tree);
 
-    // code_generate(syntax_tree);
+    code_generate(syntax_tree);
     return 0;
 }
