@@ -12,6 +12,8 @@ extern "C"{
 extern map<string, SymTab *>* symtabs;
 extern map<string, FuncTab*>* functabs;
 
+void seg_fault();
+
 void build_symtabs(TreeNode *);
 void print_symtabs(FILE* listing);
 void print_functabs(FILE* listing);

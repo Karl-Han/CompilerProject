@@ -536,40 +536,43 @@ void generate_exp(TreeNode *tree)
    {
       if (TraceCode)
          emitComment("-> Id");
-      // loc = st_lookup(tree->attr.name);
-      // loc is relative location
-      SymInfo_ret ret = sym_lookup((*symtabs)[current_func], tree->str);
-      loc = ret.loc;
 
-      if (ret.type == Integer)
+      SymInfo_ret ret = sym_lookup((*symtabs)[current_func], tree->str);
+      if (ret.loc != -1 && ret.type != Void)
       {
-         // it is just totally a integer
-         // get the exact location = reg[func] + loc
-         emitRM("LD", ac, loc, func, "load id value");
-      }
-      else
-      {
-         // two case:
-         // 1. refer as integer
-         // 2. refer the whole array
-         if (tree->child[0] == nullptr)
+         // this is a local variable
+         loc = ret.loc;
+         if (ret.type == Integer)
          {
-            // refer the whole array
-            // load its location
-            printf("CGEN ERROR, get a array variable.");
-            exit(1);
+            // it is just totally a integer
+            // get the exact location = reg[func] + loc
+            // #ac = mem(reg[func] + loc)
+            emitRM("LD", ac, loc, func, "load id value");
          }
          else
          {
-            // get the offset of the element in the array
-            // store in ac
-            code_generate_inner(tree->child[0]);
+            // two case:
+            // 1. refer as integer
+            // 2. refer the whole array
+            if (tree->child[0] == nullptr)
+            {
+               // refer the whole array
+               // load its location
+               printf("CGEN ERROR, get a array variable `%s`.", tree->str);
+               seg_fault();
+            }
+            else
+            {
+               // get the offset of the element in the array
+               // store in ac
+               code_generate_inner(tree->child[0]);
 
-            // get the exact location of the array
-            // in the first element
-            emitRM("LDA", ac1, loc, func, "loading exact location of array");
-            emitRO("ADD", ac, ac, ac1, "getting the exact element location");
-            emitRO("LD", ac, ac, gp, "loading the element content");
+               // get the exact location of the array
+               // in the first element
+               emitRM("LDA", ac1, loc, func, "loading exact location of array");
+               emitRO("ADD", ac, ac, ac1, "getting the exact element location");
+               emitRO("LD", ac, ac, gp, "loading the element content");
+            }
          }
       }
 
