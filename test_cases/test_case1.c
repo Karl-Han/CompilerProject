@@ -20,8 +20,8 @@ void main(void){
     int num1;
     int num3;
     num1 = 123;
-    num3 = 456;
-    write num1;
+    num3 = proc2(arr);
+    write num3;
     return ;
 }
 

@@ -15,7 +15,7 @@
 /* mp = "memory pointer" points
  * to top of memory (for temp storage)
  */
-#define mp 6
+// #define mp 6
 
 /* gp = "global pointer" points
  * to bottom of memory for (global)
@@ -34,7 +34,7 @@
 #define offset_mp 4
 
 // temp register
-#define tmp 8
+#define tmp 6
 
 /* accumulator */
 #define ac 0
@@ -42,12 +42,21 @@
 /* 2nd accumulator */
 #define ac1 1
 
+#include <string>
+using std::string;
+
+const string regs[8] = {
+    "ac", "ac1", "func", "top", "offset_mp", "gp", "tmp", "pc"
+};
+
 /* code emitting utilities */
+
+void emitComment_appendstr(char* ch, string s);
 
 /* Procedure emitComment prints a comment line 
  * with comment c in the code file
  */
-void emitComment(char *c);
+void emitComment(const char *c);
 
 /* Procedure emitRO emits a register-only
  * TM instruction

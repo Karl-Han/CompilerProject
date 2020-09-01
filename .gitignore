@@ -48,3 +48,5 @@ tiny_files/
 recover_parameter
 return_statement
 yacc_lex_playground/
+gcd.functab
+gcd.symtab

@@ -251,14 +251,14 @@ void build_symtabs(TreeNode *t)
     //  when building symbol table
     // new_func = false;
 
-    // init `input` and `output`
-    (*functabs)["input"] = init_functab("input", new vector<ParaInstant *>(), 2);
-    vector<ParaInstant *> *output = new vector<ParaInstant *>();
-    ParaInstant *pi = new ParaInstant();
-    pi->name = "x";
-    pi->type = 1;
-    output->push_back(pi);
-    (*functabs)["output"] = init_functab("output", output, 1);
+    // // init `input` and `output`
+    // (*functabs)["input"] = init_functab("input", new vector<ParaInstant *>(), 2);
+    // vector<ParaInstant *> *output = new vector<ParaInstant *>();
+    // ParaInstant *pi = new ParaInstant();
+    // pi->name = "x";
+    // pi->type = 1;
+    // output->push_back(pi);
+    // (*functabs)["output"] = init_functab("output", output, 1);
 
     (*symtabs)[analyze::current_func] = init_symtab(analyze::current_func);
 
@@ -393,30 +393,63 @@ void check_node(TreeNode *t)
             seg_fault();
         }
         SymInfo_ret si = sym_lookup((*symtabs)[analyze::current_func], t->str);
-        if (si.type == Array)
+        if (si.loc != -1 && si.type != Void)
         {
-            // this symbol is array
-            if (t->child[0] == nullptr)
+            // it is a local variable
+            if (si.type == Array)
             {
-                // 0 for void, 1 for integer, 2 for array
-                // refer here as array
-                t->type = 2;
+                // this symbol is array
+                if (t->child[0] == nullptr)
+                {
+                    // 0 for void, 1 for integer, 2 for array
+                    // refer here as array
+                    t->type = 2;
+                }
+                else
+                {
+                    // refer here as integer
+                    t->type = 1;
+                }
             }
-            else
+            else if (si.type == Integer)
             {
-                // refer here as integer
                 t->type = 1;
             }
         }
-        else if (si.type == Integer)
-        {
-            t->type = 1;
-        }
         else
         {
-            printf("No such symbol %s(%s)", token2char(t->token), t->str);
-            seg_fault();
+            string global_str = "global";
+            SymInfo_ret si = sym_lookup((*symtabs)[global_str], t->str);
+            if (si.loc != -1 && si.type != Void)
+            {
+                // it is a global variable
+                if (si.type == Array)
+                {
+                    // this symbol is array
+                    if (t->child[0] == nullptr)
+                    {
+                        // 0 for void, 1 for integer, 2 for array
+                        // refer here as array
+                        t->type = 2;
+                    }
+                    else
+                    {
+                        // refer here as integer
+                        t->type = 1;
+                    }
+                }
+                else if (si.type == Integer)
+                {
+                    t->type = 1;
+                }
+            }
+            else
+            {
+                printf("No such symbol.\nImpossible to get here");
+                seg_fault();
+            }
         }
+
         break;
     }
     case Token_number:
@@ -453,6 +486,7 @@ void check_node(TreeNode *t)
         break;
     case Token_var_dec:
         // it does not to be check
+        
         break;
     case Token_assign:
     {
@@ -534,6 +568,7 @@ void check_node(TreeNode *t)
     }
 }
 
+// if it is match the type of stmt and exp
 void type_check(TreeNode *t)
 {
     analyze::current_func = "global";

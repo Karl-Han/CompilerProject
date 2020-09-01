@@ -81,17 +81,19 @@ int main()
     syntax_tree = root;
     // print_node(syntax_tree);
     // generate_dot(syntax_tree, stdout);
-    char *buf = gen_dot_str(syntax_tree);
-    printf("%s", buf);
+    // char *buf = gen_dot_str(syntax_tree);
+    // printf("%s", buf);
 
     // buildSymtabs_c(syntax_tree);
     build_symtabs(syntax_tree);
-    print_symtabs(stdout);
-    print_functabs(stdout);
-    printf("Passed build symbol tables.\n");
+    FILE* fp_symtab = fopen("gcd.symtab", "w");
+    print_symtabs(fp_symtab);
+    FILE* fp_functab = fopen("gcd.functab", "w");
+    print_functabs(fp_functab);
+    printf("* Passed build symbol tables.\n");
 
     type_check(syntax_tree);
-    printf("Passed type checking.\n");
+    printf("* Passed type checking.\n");
     
     tag_kind(syntax_tree);
 

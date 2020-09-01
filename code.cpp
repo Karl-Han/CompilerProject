@@ -22,10 +22,15 @@ static int emitLoc = 0 ;
    emitBackup, and emitRestore */
 static int highEmitLoc = 0;
 
+void emitComment_appendstr(char* ch, string s){
+   string com = string(ch) + s;
+   emitComment(com.c_str());
+}
+
 /* Procedure emitComment prints a comment line 
  * with comment c in the code file
  */
-void emitComment( char * c )
+void emitComment( const char * c )
 { if (TraceCode) fprintf(code,"* %s\n",c);}
 
 /* Procedure emitRO emits a register-only
@@ -89,16 +94,21 @@ void emitRestore(void)
 
 void emitPush(int reg){
   // push #reg to stack
-  emitRM("ST", reg, offset_mp, gp, "store: temp value backuping");
+  emitComment_appendstr("-> push: ", regs[reg]);
+  // emitRM("ST", reg, offset_mp, gp, "store: temp value backuping");
+  emitRM("ST", reg, 0, offset_mp, "store: temp value backuping");
   emitRM("LDC", tmp, 1, 0, "loading 1 to #tmp");
   emitRO("SUB", offset_mp, offset_mp, tmp, "stack going upwards");
+  emitComment_appendstr("<- push:", regs[reg]);
 }
 
 void emitPop(int reg){
   // pop stack top to #reg
-  emitRM("LD", reg, offset_mp, gp, "load: restoring temp value to #tmp");
+  emitComment_appendstr("-> pop: ", regs[reg]);
   emitRM("LDC", tmp, 1, 0, "loading 1 to #tmp");
   emitRO("ADD", offset_mp, offset_mp, tmp, "stack going downwards");
+  emitRM("LD", reg, 0, offset_mp, "load: restoring temp value to #tmp");
+  emitComment_appendstr("<- pop: ", regs[reg]);
 }
 
 /* Procedure emitRM_Abs
@@ -121,7 +131,7 @@ void emitRM_Abs( char *op, int r, int a, char * c)
   if (highEmitLoc < emitLoc) highEmitLoc = emitLoc ;
 } /* emitRM_Abs */
 
-// ac <- #func + loc(ac1)
+// ac = #func + loc(ac1)
 void loadAC_exactloc_Func(int loc){
   emitPush(ac1);
 
