@@ -15,6 +15,18 @@
  */
 
 int arr[10];
+int brr[20];
+
+int proc2(int brr[]){
+    /* This is comment and local-declarations test */
+    int arr[12];
+
+    /* statement list test */
+    ;;;
+    brr[1] = 1;
+    read arr[2];
+    return arr[2] - brr[1];
+}
 
 void main(void){
     int num1;
@@ -24,17 +36,3 @@ void main(void){
     write num3;
     return ;
 }
-
-int proc2(int brr[]){
-    /* This is comment and local-declarations test */
-    int arr[12];
-
-    /* statement list test */
-    ;;;
-    proc2(arr);
-    arr[1] = 1;
-    read arr[2];
-    return arr[2] - arr[1];
-}
-
-int brr[20];

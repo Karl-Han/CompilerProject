@@ -244,11 +244,11 @@ void generate_stmt(TreeNode *tree)
             emitRO("ADD", ac, ac, ac1, "adding: ac = offset + 4 + size -1");
             emitComment("ac now points to the first argument");
 
-            // loading the parameters
+            // loading the parameters to function memory location
             for (size_t i = 0; i < paras_num; i++)
             {
                // #ac1 = mem(#ac - i)
-               emitRM("LD", ac1, -i, ac, "loading: mem(#ac -i)");
+               emitRM("LD", ac1, -i, ac, "loading: #ac1 = mem(#ac -i)");
                // mem(#func + i) = #ac
                emitRM("ST", ac1, i, func, "storing: mem(#func + i) = #ac");
             }
@@ -392,12 +392,12 @@ void generate_stmt(TreeNode *tree)
             // load offset
             code_generate_inner(tree->child[0]);
 
-            // mem(reg[gp] + ac1 + offset) = ac
+            // mem(ac1 + offset) = ac
             // ac1 = ac1 + offset(in ac)
             emitRO("ADD", ac1, ac, ac1, "calculate the address of the element");
             emitPop(ac);
-            // store #ac to #gp + ac1
-            emitRM("ST", ac, ac1, gp, "assign: store value");
+            // store #ac to ac1
+            emitRM("ST", ac, 0, ac1, "assign: store value");
          }
       }
       else{
@@ -411,7 +411,7 @@ void generate_stmt(TreeNode *tree)
             emitRM("LDA", ac1, loc, gp, "loading exact address");
 
             // mem(reg[gp] + ac1) = ac
-            emitRM("ST", ac, ac1, gp, "assign: store value");
+            emitRM("ST", ac, 0, ac1, "assign: store value");
          }
          else
          {
@@ -428,7 +428,7 @@ void generate_stmt(TreeNode *tree)
             emitRO("ADD", ac1, ac, ac1, "calculate the address of the element");
             emitPop(ac);
             // store #ac to #gp + ac1
-            emitRM("ST", ac, ac1, gp, "assign: store value");
+            emitRM("ST", ac, 0, ac1, "assign: store value");
          }
       }
 
@@ -672,7 +672,7 @@ void generate_exp(TreeNode *tree)
                // in the first element
                emitRM("LDA", ac1, loc, func, "loading exact location of array");
                emitRO("ADD", ac, ac, ac1, "getting the exact element location");
-               emitRO("LD", ac, ac, gp, "loading the element content");
+               emitRO("LD", ac, 0, ac, "loading the element content");
             }
          }
          // code_generate_inner(tree->sibling);
@@ -719,7 +719,7 @@ void generate_exp(TreeNode *tree)
                   // in the first element
                   emitRM("LDA", ac1, loc, gp, "loading exact location of array");
                   emitRO("ADD", ac, ac, ac1, "getting the exact element location");
-                  emitRO("LD", ac, ac, gp, "loading the element content");
+                  emitRO("LD", ac, 0, ac, "loading the element content");
                }
             }
          }
