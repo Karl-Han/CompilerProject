@@ -24,7 +24,7 @@ int proc1(void)
     if(1 != 2){
         int ret;
         ret = proc2();
-        write ret;
+        output(ret);
         return 3;
     }
     else{
@@ -37,6 +37,6 @@ int proc1(void)
 }
 
 void main(void){
-    write proc1();
+    output(proc1());
     return;
 }

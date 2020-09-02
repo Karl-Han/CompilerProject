@@ -24,7 +24,7 @@ int proc2(int brr[]){
     /* statement list test */
     ;;;
     brr[1] = 1;
-    read arr[2];
+    arr[2] = input();
     return arr[2] - brr[1];
 }
 
@@ -33,6 +33,6 @@ void main(void){
     int num3;
     num1 = 123;
     num3 = proc2(arr);
-    write num3;
+    output(num3);
     return ;
 }

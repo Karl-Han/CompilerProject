@@ -39,11 +39,18 @@
 extern "C"{
     #include "y.tab.h"
     #include "gen_dot.h"
+    extern FILE* yyin;
     int yyparse();
     char* gen_dot_str(TreeNode* t);
 }
 #include "analyze.h"
 #include "cgen.h"
+#include <cstdio>
+// #include <string>
+// #include <iostream>
+// #include <fstream>
+// #include <streambuf>
+
 
 extern TreeNode *root;
 FILE* code = stdout;
@@ -62,9 +69,40 @@ void print_node(TreeNode *tn)
     printf("%s", buf);
 }
 
-int main()
+int main(int argc, char* argv[])
 {
     code = stdout;
+    if (argc > 1)
+    {
+        // get file name
+        FILE* f = fopen("combine.cpp", "w+");
+        FILE* src = fopen(argv[1], "r");
+        FILE* ios_file = fopen("ios_wrapper.cpp", "r");
+        // std::ifstream src_if(argv[1]);
+        // std::ifstream ios_if("ios_wrapper.cpp");
+        // string src((std::istreambuf_iterator<char>(src_if)), (std::istreambuf_iterator<char>()));
+        // string ios((std::istreambuf_iterator<char>(ios_if)), (std::istreambuf_iterator<char>()));
+        // string combine = ios + src;
+        // fprintf(f, "%s", combine.c_str());
+        char buf[2048];
+        memset(buf, 0, 2048);
+
+        while (fgets(buf, sizeof buf, ios_file) != NULL)
+            fprintf(f, "%s\n", buf);
+        memset(buf, 0, 2048);
+        while (fgets(buf, sizeof buf, src) != NULL)
+            fprintf(f, "%s\n", buf);
+
+        rewind(f);
+
+        yyin = f;
+        fclose(src);
+        fclose(ios_file);
+    }
+    else{
+        yyin = stdin;
+    }
+
 
     // prepare for failure of parsing
     int ret = yyparse();
@@ -81,8 +119,10 @@ int main()
     syntax_tree = root;
     // print_node(syntax_tree);
     // generate_dot(syntax_tree, stdout);
-    // char *buf = gen_dot_str(syntax_tree);
+    FILE* dot_fp = fopen("temp.dot", "w");
+    char *buf = gen_dot_str(syntax_tree);
     // printf("%s", buf);
+    fprintf(dot_fp, buf);
 
     // buildSymtabs_c(syntax_tree);
     build_symtabs(syntax_tree);
