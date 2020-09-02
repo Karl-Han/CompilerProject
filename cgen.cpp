@@ -162,26 +162,72 @@ void generate_stmt(TreeNode *tree)
          string str = string("-> read");
          emitComment(str.c_str());
       }
+
       // #ac = value
       emitRO("IN", ac, 0, 0, "read integer value");
-      emitPush(ac);
 
       SymInfo_ret ret = sym_lookup((*symtabs)[current_func], tree->str);
       if (ret.loc != -1 && ret.type != Void){
-         // it is a local variable
-         // load the exact location to ac
-         loadAC_exactloc_Func(ret.loc);
+         // relative loc and it is local variable
+         loc = ret.loc;
+         if (ret.type == Integer)
+         {
+            // This is an Integer symbol
+            // just get the exact loc(ac1) = #func + loc
+            emitRM("LDA", ac1, loc, func, "loading exact address");
+
+            // mem(#ac1) = ac
+            emitRM("ST", ac, 0, ac1, "assign: store value");
+         }
+         else
+         {
+            // This is an Array
+            emitPush(ac);
+            // if it is assign to a array element
+            // exact loc is in `loc` in ac1
+            emitRM("LD", ac1, loc, func, "loading exact address of array stored in `loc`");
+            // load offset
+            code_generate_inner(tree->child[0]);
+
+            // mem(ac1 + offset) = ac
+            // ac1 = ac1 + offset(in ac)
+            emitRO("ADD", ac1, ac, ac1, "calculate the address of the element");
+            emitPop(ac);
+            // store #ac to ac1
+            emitRM("ST", ac, 0, ac1, "assign: store value");
+         }
       }
       else{
          // it is a global variable
-         SymInfo_ret ret = sym_lookup((*symtabs)["global"], tree->str);
-         emitRM("LDC", ac, ret.loc, 0, "loading: load global variable loc to ac");
-      }
+         SymInfo_ret ret_global = sym_lookup((*symtabs)[current_func], tree->str);
+         loc = ret_global.loc;
+         if (ret_global.type == Integer)
+         {
+            // This is an Integer symbol
+            // just get the exact loc(ac1) = #gp + loc
+            emitRM("LDA", ac1, loc, gp, "loading exact address");
 
-      // #ac1 = value
-      emitPop(ac1);
-      // mem(#ac) = #ac1
-      emitRM("ST", ac1, 0, ac, "read: store value");
+            // mem(reg[gp] + ac1) = ac
+            emitRM("ST", ac, 0, ac1, "assign: store value");
+         }
+         else
+         {
+            // This is an Array
+            emitPush(ac);
+            // if it is assign to a array element
+            // exact loc is in `loc` in ac1
+            emitRM("LD", ac1, loc, gp, "loading exact address of array stored in `loc`");
+            // load offset
+            code_generate_inner(tree->child[0]);
+
+            // mem(reg[gp] + ac1 + offset) = ac
+            // ac1 = ac1 + offset(in ac)
+            emitRO("ADD", ac1, ac, ac1, "calculate the address of the element");
+            emitPop(ac);
+            // store #ac to #gp + ac1
+            emitRM("ST", ac, 0, ac1, "assign: store value");
+         }
+      }
 
       if (TraceCode){
          string str = string("<- read");
@@ -264,6 +310,22 @@ void generate_stmt(TreeNode *tree)
          emitRM("LDC", pc, currentLoc, 0, "loading: load main location to prelude's PC");
          emitRestore();
       }
+      // // initialize arrays before use
+      // string func_str = tree->str;
+      // SymTab* st = (*symtabs)[func_str];
+      // for (auto i = st->m->begin(); i != st->m->end(); i++)
+      // {
+      //    // for all string -> SymInfo
+      //    string sym_name = i->first;
+      //    SymInfo* si = i->second;
+      //    if (si->type == Array)
+      //    {
+      //       // fill the first allocated place 
+      //    }
+      //    
+      // }
+      
+
       // generate compound_st
       code_generate_inner(tree->child[3]);
 
@@ -359,6 +421,43 @@ void generate_stmt(TreeNode *tree)
          emitComment("<- while");
       break;
    }
+   case Token_var_dec:{
+      string global_str = "global";
+      if (current_func == global_str)
+      {
+         break;
+      }
+
+      if (TraceCode)
+         emitComment("-> var dec");
+      // for Integer, just go pass
+      // initialize all the array variable
+      
+      SymTab *st = (*symtabs)[current_func];
+      map<string, SymInfo *> *m = st->m;
+      for (auto i = m->begin(); i != m->end(); i++)
+      {
+         // for all the symbols
+         SymInfo *si = i->second;
+
+         // only deal with array
+         if (si->type == Array)
+         {
+            // the relative location
+            int memloc = si->memloc;
+            // memory layout:
+            // [0]:exact location, [1..]: elements
+            // so the start location is memloc +1
+            // mem(memloc) = #func + memloc +1
+            emitRM("LDC", tmp, memloc + 1, 0, "loading: loading func array's relative location");
+            emitRO("ADD", tmp, tmp, func, "adding: getting the array's exact location");
+            emitRM("ST", tmp, memloc, func, "storing: storing global array's exact location");
+         }
+      }
+      if (TraceCode)
+         emitComment("<- var dec");
+      break;
+   }
    case Token_assign:
    {
       if (TraceCode)
@@ -388,7 +487,7 @@ void generate_stmt(TreeNode *tree)
             emitPush(ac);
             // if it is assign to a array element
             // exact loc is in `loc` in ac1
-            emitRM("LD", ac1, loc, gp, "loading exact address of array stored in `loc`");
+            emitRM("LD", ac1, loc, func, "loading exact address of array stored in `loc`");
             // load offset
             code_generate_inner(tree->child[0]);
 

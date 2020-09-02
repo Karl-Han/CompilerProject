@@ -229,7 +229,7 @@ return_st       :   Token_return Token_semicolon                	{TRAN("return_s
                 |   Token_return exp Token_semicolon            	{TRAN("return_st","return exp;");TreeNode* tn = getTreeNode(Token_return); tn->child[0] = $2; $$ = tn;};
                 ;
 
-read_st         :   Token_read var Token_semicolon            	{TRAN("read_st","read var;");TreeNode* tn = $1; TreeNode* var = $2; tn->str = var->str; tn->num = var->num; $$ = tn;};
+read_st         :   Token_read var Token_semicolon            	{TRAN("read_st","read var;");TreeNode* tn = $1; TreeNode* var = $2; tn->str = var->str; tn->child[0] = var->child[0]; $$ = tn;};
                 ;
 
 write_st        :   Token_write exp Token_semicolon                	{TRAN("write_st","write exp;");TreeNode* tn = $1; tn->child[0] = $2; $$ = tn;};
