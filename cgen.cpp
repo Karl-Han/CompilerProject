@@ -202,7 +202,8 @@ void generate_stmt(TreeNode *tree)
       else
       {
          // it is a global variable
-         SymInfo_ret ret_global = sym_lookup((*symtabs)[current_func], tree->str);
+         string global_str = "global";
+         SymInfo_ret ret_global = sym_lookup((*symtabs)[global_str], tree->str);
          loc = ret_global.loc;
          if (ret_global.type == Integer)
          {
@@ -404,26 +405,29 @@ void generate_stmt(TreeNode *tree)
    {
       if (TraceCode)
          emitComment("-> while");
+      // p1 is predicate, p2 is body
       p1 = tree->child[0];
       p2 = tree->child[1];
-      // savedLoc1 is the start of all repeat instruction
-      savedLoc1 = emitSkip(1);
-      emitComment("while: jump after body comes back here");
 
-      /* generate code for body */
+      // loc1 is for predicating
+      savedLoc1 = emitSkip(0);
+
+      // predicate
       code_generate_inner(p1);
 
-      // here to know where the predicate is
+      // loc2 is for further jump out of while
+      savedLoc2 = emitSkip(1);
+
+      code_generate_inner(p2);
+      // finish body then jump back to p1
+      emitRM("LDC", pc, savedLoc1, 0, "loading: load while predicate location to pc");
+
+      // jump out
       currentLoc = emitSkip(0);
-      emitBackup(savedLoc1);
-      // load next pc directly
-      emitRM("LDC", pc, currentLoc, 0, "while: jump to predicate");
+      emitBackup(savedLoc2);
+      emitRM("JEQ", ac, currentLoc, 0, "jumping: jump to outside if #ac == 0");
       emitRestore();
 
-      /* generate code for test */
-      code_generate_inner(p2);
-      // reg[ac] = 0
-      emitRM_Abs("JEQ", ac, savedLoc1 + 1, "repeat: jmp back to body");
       if (TraceCode)
          emitComment("<- while");
       break;
@@ -508,7 +512,8 @@ void generate_stmt(TreeNode *tree)
       else
       {
          // it is a global variable
-         SymInfo_ret ret_global = sym_lookup((*symtabs)[current_func], tree->str);
+         string global_str = "global";
+         SymInfo_ret ret_global = sym_lookup((*symtabs)[global_str], tree->str);
          loc = ret_global.loc;
          if (ret_global.type == Integer)
          {
@@ -737,12 +742,12 @@ void generate_exp(TreeNode *tree)
       {
          emitPop(ac1);
       }
-      break;
 
       if (TraceCode)
       {
          emitComment_appendstr("<- call: ", tree->str);
       }
+      break;
    }
    case Token_var:
    {
@@ -790,7 +795,8 @@ void generate_exp(TreeNode *tree)
       else
       {
          // this is a global variable or not exist
-         SymInfo_ret ret_global = sym_lookup((*symtabs)["global"], tree->str);
+         string global_str = "global";
+         SymInfo_ret ret_global = sym_lookup((*symtabs)[global_str], tree->str);
          if (ret_global.loc == -1 && ret_global.type == Void)
          {
             // no such symbol, but it is impossible
