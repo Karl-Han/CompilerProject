@@ -158,7 +158,8 @@ void generate_stmt(TreeNode *tree)
    {
    case Token_read:
    {
-      if (TraceCode){
+      if (TraceCode)
+      {
          string str = string("-> read");
          emitComment(str.c_str());
       }
@@ -167,7 +168,8 @@ void generate_stmt(TreeNode *tree)
       emitRO("IN", ac, 0, 0, "read integer value");
 
       SymInfo_ret ret = sym_lookup((*symtabs)[current_func], tree->str);
-      if (ret.loc != -1 && ret.type != Void){
+      if (ret.loc != -1 && ret.type != Void)
+      {
          // relative loc and it is local variable
          loc = ret.loc;
          if (ret.type == Integer)
@@ -197,7 +199,8 @@ void generate_stmt(TreeNode *tree)
             emitRM("ST", ac, 0, ac1, "assign: store value");
          }
       }
-      else{
+      else
+      {
          // it is a global variable
          SymInfo_ret ret_global = sym_lookup((*symtabs)[current_func], tree->str);
          loc = ret_global.loc;
@@ -229,7 +232,8 @@ void generate_stmt(TreeNode *tree)
          }
       }
 
-      if (TraceCode){
+      if (TraceCode)
+      {
          string str = string("<- read");
          emitComment(str.c_str());
       }
@@ -237,7 +241,8 @@ void generate_stmt(TreeNode *tree)
    }
    case Token_write:
    {
-      if (TraceCode){
+      if (TraceCode)
+      {
          string str = string("-> write");
          emitComment(str.c_str());
       }
@@ -247,7 +252,8 @@ void generate_stmt(TreeNode *tree)
       /* now output it */
       emitRO("OUT", ac, 0, 0, "write ac");
 
-      if (TraceCode){
+      if (TraceCode)
+      {
          string str = string("<- write");
          emitComment(str.c_str());
       }
@@ -261,7 +267,8 @@ void generate_stmt(TreeNode *tree)
    }
    case Token_func:
    {
-      if (TraceCode){
+      if (TraceCode)
+      {
          emitComment_appendstr("-> func: ", tree->str);
       }
 
@@ -320,11 +327,10 @@ void generate_stmt(TreeNode *tree)
       //    SymInfo* si = i->second;
       //    if (si->type == Array)
       //    {
-      //       // fill the first allocated place 
+      //       // fill the first allocated place
       //    }
-      //    
+      //
       // }
-      
 
       // generate compound_st
       code_generate_inner(tree->child[3]);
@@ -334,7 +340,8 @@ void generate_stmt(TreeNode *tree)
       return_stmt(tn_tmp);
       free(tn_tmp);
 
-      if (TraceCode){
+      if (TraceCode)
+      {
          emitComment_appendstr("<- func: ", tree->str);
       }
 
@@ -421,7 +428,8 @@ void generate_stmt(TreeNode *tree)
          emitComment("<- while");
       break;
    }
-   case Token_var_dec:{
+   case Token_var_dec:
+   {
       string global_str = "global";
       if (current_func == global_str)
       {
@@ -432,27 +440,24 @@ void generate_stmt(TreeNode *tree)
          emitComment("-> var dec");
       // for Integer, just go pass
       // initialize all the array variable
-      
-      SymTab *st = (*symtabs)[current_func];
-      map<string, SymInfo *> *m = st->m;
-      for (auto i = m->begin(); i != m->end(); i++)
-      {
-         // for all the symbols
-         SymInfo *si = i->second;
 
-         // only deal with array
-         if (si->type == Array)
-         {
-            // the relative location
-            int memloc = si->memloc;
-            // memory layout:
-            // [0]:exact location, [1..]: elements
-            // so the start location is memloc +1
-            // mem(memloc) = #func + memloc +1
-            emitRM("LDC", tmp, memloc + 1, 0, "loading: loading func array's relative location");
-            emitRO("ADD", tmp, tmp, func, "adding: getting the array's exact location");
-            emitRM("ST", tmp, memloc, func, "storing: storing global array's exact location");
-         }
+      SymTab *st = (*symtabs)[current_func];
+      // for .str
+      string symbol_str = tree->child[1]->str;
+      SymInfo *si = st->m->find(symbol_str)->second;
+
+      // only deal with array
+      if (si->type == Array)
+      {
+         // the relative location
+         int memloc = si->memloc;
+         // memory layout:
+         // [0]:exact location, [1..]: elements
+         // so the start location is memloc +1
+         // mem(memloc) = #func + memloc +1
+         emitRM("LDC", tmp, memloc + 1, 0, "loading: loading func array's relative location");
+         emitRO("ADD", tmp, tmp, func, "adding: getting the array's exact location");
+         emitRM("ST", tmp, memloc, func, "storing: storing global array's exact location");
       }
       if (TraceCode)
          emitComment("<- var dec");
@@ -469,7 +474,8 @@ void generate_stmt(TreeNode *tree)
 
       /* now store value */
       SymInfo_ret ret = sym_lookup((*symtabs)[current_func], tree->str);
-      if (ret.loc != -1 && ret.type != Void){
+      if (ret.loc != -1 && ret.type != Void)
+      {
          // relative loc and it is local variable
          loc = ret.loc;
          if (ret.type == Integer)
@@ -499,7 +505,8 @@ void generate_stmt(TreeNode *tree)
             emitRM("ST", ac, 0, ac1, "assign: store value");
          }
       }
-      else{
+      else
+      {
          // it is a global variable
          SymInfo_ret ret_global = sym_lookup((*symtabs)[current_func], tree->str);
          loc = ret_global.loc;
@@ -537,7 +544,8 @@ void generate_stmt(TreeNode *tree)
    }
    case Token_return:
    {
-      if (TraceCode){
+      if (TraceCode)
+      {
          string str = string("-> return");
          emitComment(str.c_str());
       }
@@ -554,7 +562,8 @@ void generate_stmt(TreeNode *tree)
          return_stmt(tree);
       }
 
-      if (TraceCode){
+      if (TraceCode)
+      {
          string str = string("<- return");
          emitComment(str.c_str());
       }
@@ -667,7 +676,8 @@ void generate_exp(TreeNode *tree)
 
    case Token_call:
    {
-      if (TraceCode){
+      if (TraceCode)
+      {
          emitComment_appendstr("-> call: ", tree->str);
       }
 
@@ -694,7 +704,7 @@ void generate_exp(TreeNode *tree)
       // push registers: PC, func, paras
       int paras_num = (*functabs)[tree->str]->para_type_list->size();
       // PC can not be saved in this way
-      //  because it will store next instruction 
+      //  because it will store next instruction
       //  instead of going back
       // emitPush(pc);
       // skip 4 instruction for store current_loc and push it
@@ -729,7 +739,8 @@ void generate_exp(TreeNode *tree)
       }
       break;
 
-      if (TraceCode){
+      if (TraceCode)
+      {
          emitComment_appendstr("<- call: ", tree->str);
       }
    }
@@ -769,7 +780,7 @@ void generate_exp(TreeNode *tree)
 
                // get the exact location of the array
                // in the first element
-               emitRM("LDA", ac1, loc, func, "loading exact location of array");
+               emitRM("LD", ac1, loc, func, "loading exact location of array, stored in mem(#func + loc");
                emitRO("ADD", ac, ac, ac1, "getting the exact element location");
                emitRO("LD", ac, 0, ac, "loading the element content");
             }
@@ -816,7 +827,7 @@ void generate_exp(TreeNode *tree)
 
                   // get the exact location of the array
                   // in the first element
-                  emitRM("LDA", ac1, loc, gp, "loading exact location of array");
+                  emitRM("LD", ac1, loc, gp, "loading exact location of array");
                   emitRO("ADD", ac, ac, ac1, "getting the exact element location");
                   emitRO("LD", ac, 0, ac, "loading the element content");
                }
