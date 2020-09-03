@@ -331,7 +331,20 @@ void check_node(TreeNode *t)
     {
         // function name is .str
         // check return type valid
-        switch ((*functabs)[t->str]->ret_type)
+        auto f = functabs->find(t->str);
+        FuncTab* ft = nullptr;
+        if (f != functabs->end())
+        {
+            // find it 
+            ft = f->second;
+        }
+        else{
+            // no such function table
+            printf("No such function table");
+            seg_fault();
+        }
+        
+        switch (ft->ret_type)
         {
         case 1:
             // return type Void

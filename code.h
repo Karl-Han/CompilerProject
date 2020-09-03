@@ -49,6 +49,14 @@ const string regs[8] = {
     "ac", "ac1", "func", "top", "offset_mp", "gp", "tmp", "pc"
 };
 
+/* TM location number for **current instruction** emission */
+extern int emitLoc;
+
+/* **Highest TM location emitted so far**
+   For use in conjunction with emitSkip,
+   emitBackup, and emitRestore */
+extern int highEmitLoc;
+
 /* code emitting utilities */
 
 void emitComment_appendstr(char* ch, string s);

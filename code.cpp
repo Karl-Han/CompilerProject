@@ -14,13 +14,8 @@
 extern bool TraceCode;
 extern FILE* code;
 
-/* TM location number for **current instruction** emission */
-static int emitLoc = 0 ;
-
-/* **Highest TM location emitted so far**
-   For use in conjunction with emitSkip,
-   emitBackup, and emitRestore */
-static int highEmitLoc = 0;
+int emitLoc = 0;
+int highEmitLoc = 0;
 
 void emitComment_appendstr(char* ch, string s){
    string com = string(ch) + s;

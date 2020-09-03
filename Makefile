@@ -31,13 +31,13 @@ build: $(OUT)
 test-all: test test1 test2 test3
 
 test1: ./test_cases/test_case1.c
-	./$(OUT) < $<
+	./$(OUT) $<
 
 test2: ./test_cases/test_case2.c
-	./$(OUT) < $<
+	./$(OUT) $<
 
 test3: ./test_cases/sort.c
-	./$(OUT) < $<
+	./$(OUT) $<
 
 test: $(TESTOUT)
 
@@ -45,7 +45,7 @@ clean:
 	rm -f *.o $(OUTFILES)
 
 $(TESTOUT): $(TESTFILE) $(OUT)
-	./$(OUT) < $< > $@
+	./$(OUT) $< > $@
 
 $(OUT): $(OBJ) $(OBJCPP) lex.yy.c y.tab.c
 	$(CPP) -o $(OUT) $(OBJ) $(OBJCPP)

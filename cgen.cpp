@@ -318,20 +318,6 @@ void generate_stmt(TreeNode *tree)
          emitRM("LDC", pc, currentLoc, 0, "loading: load main location to prelude's PC");
          emitRestore();
       }
-      // // initialize arrays before use
-      // string func_str = tree->str;
-      // SymTab* st = (*symtabs)[func_str];
-      // for (auto i = st->m->begin(); i != st->m->end(); i++)
-      // {
-      //    // for all string -> SymInfo
-      //    string sym_name = i->first;
-      //    SymInfo* si = i->second;
-      //    if (si->type == Array)
-      //    {
-      //       // fill the first allocated place
-      //    }
-      //
-      // }
 
       // generate compound_st
       code_generate_inner(tree->child[3]);
