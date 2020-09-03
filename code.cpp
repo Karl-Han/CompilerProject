@@ -131,7 +131,7 @@ void loadAC_exactloc_Func(int loc){
   emitPush(ac1);
 
   emitRM("LDC", ac1, loc, 0, "loading loc to ac1");
-  emitRO("ADD", ac, ac1, func, "adding: #func + loc");
+  emitRO("ADD", ac, ac1, func_reg, "adding: #func + loc");
 
   emitPop(ac1);
 }

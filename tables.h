@@ -1,7 +1,7 @@
 #ifndef __tables
 #define __tables
 
-#include <string>
+#include <string.h>
 #include <vector>
 #include <map>
 #include <cstdio>

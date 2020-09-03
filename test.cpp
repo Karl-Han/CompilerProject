@@ -48,6 +48,7 @@ extern "C"{
 #include "analyze.h"
 #include "cgen.h"
 #include <cstdio>
+#include <cstring>
 // #include <string>
 // #include <iostream>
 // #include <fstream>

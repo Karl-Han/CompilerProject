@@ -16,8 +16,10 @@ SymInfo* init_syminfo(string name, int loc, int length, SymType type){
 
 // initialize symbol table
 SymTab* init_symtab(string name){
-    SymTab* st = (SymTab*)malloc(sizeof(SymTab));
-    st->name_table = name;
+    // SymTab* st = (SymTab*)malloc(sizeof(SymTab));
+    SymTab* st = new SymTab();
+    st->name_table ="";
+    st->name_table += name.c_str();
     st->m = new map<string, SymInfo*>();
 
     return st;

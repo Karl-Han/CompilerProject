@@ -25,7 +25,7 @@
 
 // used to record the start memory location 
 //  of the current function
-#define func 2
+#define func_reg 2
 
 // used to record the bound of the current function
 #define top 3

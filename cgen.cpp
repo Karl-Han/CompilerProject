@@ -40,7 +40,7 @@ int prelude_global()
    // find out the size of global
    // #func = global_size
    int global_size = func2memloc["global"];
-   emitRM("LDC", func, global_size, 0, "loading: #func starts from global size");
+   emitRM("LDC", func_reg, global_size, 0, "loading: #func starts from global size");
 
    // initialize all the array variable
    string s = "global";
@@ -140,10 +140,10 @@ void return_stmt(TreeNode *t)
 
    // recover registers
    // #top = #func
-   emitPush(func);
+   emitPush(func_reg);
    emitPop(top);
    // #func = mem(#offset +2)
-   emitRM("LD", func, 2, offset_mp, "loading: restoring old #func");
+   emitRM("LD", func_reg, 2, offset_mp, "loading: restoring old #func");
    // #pc= mem(#offset +3)
    emitRM("LD", pc, 3, offset_mp, "loading: restoring old #pc");
 }
@@ -176,7 +176,7 @@ void generate_stmt(TreeNode *tree)
          {
             // This is an Integer symbol
             // just get the exact loc(ac1) = #func + loc
-            emitRM("LDA", ac1, loc, func, "loading exact address");
+            emitRM("LDA", ac1, loc, func_reg, "loading exact address");
 
             // mem(#ac1) = ac
             emitRM("ST", ac, 0, ac1, "assign: store value");
@@ -187,7 +187,7 @@ void generate_stmt(TreeNode *tree)
             emitPush(ac);
             // if it is assign to a array element
             // exact loc is in `loc` in ac1
-            emitRM("LD", ac1, loc, func, "loading exact address of array stored in `loc`");
+            emitRM("LD", ac1, loc, func_reg, "loading exact address of array stored in `loc`");
             // load offset
             code_generate_inner(tree->child[0]);
 
@@ -304,7 +304,7 @@ void generate_stmt(TreeNode *tree)
                // #ac1 = mem(#ac - i)
                emitRM("LD", ac1, -i, ac, "loading: #ac1 = mem(#ac -i)");
                // mem(#func + i) = #ac
-               emitRM("ST", ac1, i, func, "storing: mem(#func + i) = #ac");
+               emitRM("ST", ac1, i, func_reg, "storing: mem(#func + i) = #ac");
             }
          }
       }
@@ -446,8 +446,8 @@ void generate_stmt(TreeNode *tree)
          // so the start location is memloc +1
          // mem(memloc) = #func + memloc +1
          emitRM("LDC", tmp, memloc + 1, 0, "loading: loading func array's relative location");
-         emitRO("ADD", tmp, tmp, func, "adding: getting the array's exact location");
-         emitRM("ST", tmp, memloc, func, "storing: storing global array's exact location");
+         emitRO("ADD", tmp, tmp, func_reg, "adding: getting the array's exact location");
+         emitRM("ST", tmp, memloc, func_reg, "storing: storing global array's exact location");
       }
       if (TraceCode)
          emitComment("<- var dec");
@@ -472,7 +472,7 @@ void generate_stmt(TreeNode *tree)
          {
             // This is an Integer symbol
             // just get the exact loc(ac1) = #func + loc
-            emitRM("LDA", ac1, loc, func, "loading exact address");
+            emitRM("LDA", ac1, loc, func_reg, "loading exact address");
 
             // mem(#ac1) = ac
             emitRM("ST", ac, 0, ac1, "assign: store value");
@@ -483,7 +483,7 @@ void generate_stmt(TreeNode *tree)
             emitPush(ac);
             // if it is assign to a array element
             // exact loc is in `loc` in ac1
-            emitRM("LD", ac1, loc, func, "loading exact address of array stored in `loc`");
+            emitRM("LD", ac1, loc, func_reg, "loading exact address of array stored in `loc`");
             // load offset
             code_generate_inner(tree->child[0]);
 
@@ -701,7 +701,7 @@ void generate_exp(TreeNode *tree)
       // skip 4 instruction for store current_loc and push it
       int saved_loc4pc = emitSkip(4);
 
-      emitPush(func);
+      emitPush(func_reg);
       // ALERT: it is really necessary?
       // you are pushing the ac instead of paras_num
       emitRM("LDC", tmp, paras_num, 0, "loading: load paras_num to tmp");
@@ -709,7 +709,7 @@ void generate_exp(TreeNode *tree)
 
       // set registers: func, top, PC
       emitPush(top);
-      emitPop(func);
+      emitPop(func_reg);
       emitRM("LDC", tmp, (*functabs)[tree->str]->table_size, 0, "loading: load the size of function table");
       emitRO("ADD", top, top, tmp, "adding: top = old top + table size");
       emitRM("LDC", pc, (*functabs)[tree->str]->vmcode_startpos, 0, "loading: const start pos to PC");
@@ -750,7 +750,7 @@ void generate_exp(TreeNode *tree)
             // it is just totally a integer
             // get the exact location = reg[func] + loc
             // #ac = mem(reg[func] + loc)
-            emitRM("LD", ac, loc, func, "load id value");
+            emitRM("LD", ac, loc, func_reg, "load id value");
          }
          else
          {
@@ -761,7 +761,7 @@ void generate_exp(TreeNode *tree)
             {
                // refer the whole array
                // load its location
-               emitRM("LD", ac, loc, func, "loading: array's exact location");
+               emitRM("LD", ac, loc, func_reg, "loading: array's exact location");
             }
             else
             {
@@ -771,7 +771,7 @@ void generate_exp(TreeNode *tree)
 
                // get the exact location of the array
                // in the first element
-               emitRM("LD", ac1, loc, func, "loading exact location of array, stored in mem(#func + loc");
+               emitRM("LD", ac1, loc, func_reg, "loading exact location of array, stored in mem(#func + loc");
                emitRO("ADD", ac, ac, ac1, "getting the exact element location");
                emitRO("LD", ac, 0, ac, "loading the element content");
             }

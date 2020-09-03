@@ -44,11 +44,11 @@
 LexeeLinkedlist* lexee = 0;
 int colno = 1, lineno= 1;
 
-yytoken_kind_t getSymbol(char);
+enum yytokentype getSymbol(char);
 void comment();
 void yyerror(const char*);
 void newline();
-// char* token2string(yytoken_kind_t t);
+// char* token2string(enum yytokentype t);
 /*
  * Token_if = 128, Token_else, Token_int, 
  * 	Token_void, Token_while, Token_return,
@@ -75,7 +75,7 @@ SYMBOL      ([+\-*/<>=;,(){}\[\]])
 %%
 {SPACE}         {init_linkedlist(); colno += yyleng; /* Do nothing */}
 [\n]            {init_linkedlist(); /* Do nothing */ newline();}
-{SYMBOL}        {init_linkedlist(); yytoken_kind_t token = getSymbol(yytext[0]);TreeNode* tn = getTreeNode(token); yylval.tn = tn;insert_lexee(get_lexee(yytext, tokens[token-tokens_offset], lineno, colno)); colno += yyleng; return token;}
+{SYMBOL}        {init_linkedlist(); enum yytokentype token = getSymbol(yytext[0]);TreeNode* tn = getTreeNode(token); yylval.tn = tn;insert_lexee(get_lexee(yytext, tokens[token-tokens_offset], lineno, colno)); colno += yyleng; return token;}
 "int"           {init_linkedlist(); int token = Token_int; TreeNode* tn = getTreeNode(Token_int); yylval.tn = tn;insert_lexee(get_lexee(yytext, tokens[token-tokens_offset], lineno, colno)); colno += yyleng; return Token_int;}
 "void"          {init_linkedlist(); int token = Token_void; TreeNode* tn = getTreeNode(Token_void); yylval.tn = tn;insert_lexee(get_lexee(yytext, tokens[token-tokens_offset], lineno, colno)); colno += yyleng; return Token_void;}
 "if"            {init_linkedlist(); int token = Token_if; TreeNode* tn = getTreeNode(Token_if); yylval.tn = tn;insert_lexee(get_lexee(yytext, tokens[token-tokens_offset], lineno, colno)); colno += yyleng; return Token_if;}
@@ -166,7 +166,7 @@ void yyerror(const char* str){
 
 // Wrong because it is old order
 // int main_scanner(){
-//     yytoken_kind_t token = Token_none;
+//     enum yytokentype token = Token_none;
 //     while(token = yylex()){
 //         if(token != Token_comment)
 //             printf("%s\t%s\n", yytext, token2string(token));
@@ -175,6 +175,8 @@ void yyerror(const char* str){
 // }
 
 int yywrap(){
+     yy_flush_buffer(YY_CURRENT_BUFFER);
+     {BEGIN INITIAL;}
     return 1;
 }
 
@@ -201,7 +203,7 @@ void comment(){
     }
 }
 
-int getSymbol(char ch){
+enum yytokentype getSymbol(char ch){
     // SYMBOL      ([+\-*/<>=;,(){}\[\]])
     switch(ch){
         case '+':
@@ -268,7 +270,7 @@ Lexee* get_lexee(char* str, char* token, int lineno, int colno){
 
 
 // Wrong order
-// char* token2string(yytoken_kind_t t){
+// char* token2string(enum yytokentype t){
 //     char* str_token[] = {"Token_if","Token_else","Token_int","Token_void","Token_while","Token_return","Token_plus","Token_minus","Token_multiply","Token_divide","Token_less","Token_lessEqual","Token_more","Token_moreEqual","Token_equal","Token_noEqual","Token_assign","Token_semicolon","Token_comma","Token_smallBracket_left","Token_smallBracket_right","Token_middleBracket_left","Token_middleBracket_right","Token_largeBracket_left","Token_largeBracket_right","Token_number","Token_comment","Token_identifier","Token_space", "Token_func_dec", "Token_compound", "Token_var_dec", "Token_para"};
 //     return str_token[t - Token_if];
 // }
