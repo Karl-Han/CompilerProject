@@ -135,21 +135,3 @@ void loadAC_exactloc_Func(int loc){
 
   emitPop(ac1);
 }
-
-void inc_reg(int reg){
-  emitPush(tmp);
-
-  emitRM("LDC", tmp, 1, 0, "loading: temporary value 1 to tmp");
-  emitRO("ADD", reg, reg, tmp, "adding: increment 1 to reg");
-
-  emitPop(tmp);
-}
-
-void dec_reg(int reg){
-  emitPush(tmp);
-
-  emitRM("LDC", tmp, 1, 0, "loading: temporary value 1 to tmp");
-  emitRO("SUB", reg, reg, tmp, "adding: increment 1 to reg");
-
-  emitPop(tmp);
-}

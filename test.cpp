@@ -1,4 +1,6 @@
-#define ANALYZE FALSE
+#define GEN_DOT_FILE FALSE
+#define GEN_SYMTAB_FILE FALSE
+#define GEN_FUNCTAB_FILE FALSE
 /* 
  * MIT License
  * 
@@ -117,19 +119,26 @@ int main(int argc, char* argv[])
 
     // everything works fine
     syntax_tree = root;
-    // print_node(syntax_tree);
+    #if PRINT_SYNTAX_NODE
+    print_node(syntax_tree);
+    #endif
     // generate_dot(syntax_tree, stdout);
+    #if GEN_DOT_FILE
     FILE* dot_fp = fopen("temp.dot", "w");
     char *buf = gen_dot_str(syntax_tree);
-    // printf("%s", buf);
     fprintf(dot_fp, buf);
+    #endif
 
     // buildSymtabs_c(syntax_tree);
     build_symtabs(syntax_tree);
+    #if GEN_SYMTAB_FILE
     FILE* fp_symtab = fopen("gcd.symtab", "w");
     print_symtabs(fp_symtab);
+    #endif
+    #if GEN_FUNCTAB_FILE
     FILE* fp_functab = fopen("gcd.functab", "w");
     print_functabs(fp_functab);
+    #endif
     printf("* Passed build symbol tables.\n");
 
     type_check(syntax_tree);

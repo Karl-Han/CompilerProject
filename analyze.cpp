@@ -9,6 +9,7 @@ extern "C"
 static char *TYPE[] = {"VOID", "INTEGER", "ARRAY"};
 map<string, SymTab *> *symtabs;
 map<string, FuncTab *> *functabs;
+static string global_str = "global";
 
 namespace analyze
 {
@@ -431,7 +432,6 @@ void check_node(TreeNode *t)
         }
         else
         {
-            string global_str = "global";
             SymInfo_ret si = sym_lookup((*symtabs)[global_str], t->str);
             if (si.loc != -1 && si.type != Void)
             {
@@ -473,19 +473,22 @@ void check_node(TreeNode *t)
     case Token_read:
     {
         SymInfo_ret ret = sym_lookup((*symtabs)[analyze::current_func], t->str);
+        if (ret.loc = -1 && ret.type == Void)
+        {
+            ret = sym_lookup((*symtabs)[global_str], t->str);
+        }
+        
         if (ret.type == Void)
         {
             // error
             printf("Refer to %s before declaration.\n", t->str);
             exit(1);
         }
-        else if (ret.type == Array && t->num < 0)
+        else if (ret.type == Array && t->child[0]->type != 1)
         {
-            // there must be value in .num
-            printf("Refer to Array(%s) with neg index %d.\n", t->str, t->num);
+            printf("Refer to Array(%s) with wrong index.\n", t->str);
             exit(1);
         }
-        // if it is a valid Integer, done
         break;
     }
     case Token_write:
@@ -508,7 +511,11 @@ void check_node(TreeNode *t)
         // 2. var is Integer type
         // underneath will deal with var's type
         SymInfo_ret ret = sym_lookup((*symtabs)[analyze::current_func], t->str);
-        if (ret.type == Void)
+        if (ret.loc = -1 && ret.type == Void)
+        {
+            ret = sym_lookup((*symtabs)[global_str], t->str);
+        }
+        if (ret.loc = -1 && ret.type == Void)
         {
             // no such symbol
             printf("No such symbol %s\n", t->str);

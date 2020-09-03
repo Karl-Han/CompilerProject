@@ -54,6 +54,9 @@
         "streambuf": "cpp",
         "tuple": "cpp",
         "unordered_map": "cpp",
-        "iosfwd": "cpp"
+        "iosfwd": "cpp",
+        "deque": "cpp",
+        "filesystem": "cpp",
+        "stack": "cpp"
     }
 }

@@ -52,12 +52,6 @@ void sym_insert(SymTab* s, string name, int lineno, int count, SymType type);
 SymInfo_ret sym_lookup(SymTab* s, string name);
 void print_symtab(SymTab *table, FILE *listing);
 
-// extern "C"{
-//     SymTab* init_symtab_c();
-//     void sym_insert_c(SymTab* s, char* name, int lineno, int loc, int count, SymType type);
-//     SymInfo_ret sym_lookup_c(SymTab* s, char* name);
-// }
-
 typedef struct {
     string name;
     // 1 for int, 2 for array
