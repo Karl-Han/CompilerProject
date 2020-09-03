@@ -27,7 +27,7 @@ typedef struct _SymInfo
     // length of the symbol
     // for array is exact length +1
     int length;
-    vector<int> refer_line;
+    vector<int>* refer_line;
     SymType type;
 }SymInfo;
 

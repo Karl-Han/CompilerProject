@@ -8,7 +8,7 @@ SymInfo* init_syminfo(string name, int loc, int length, SymType type){
     si->name = name;
     si->memloc = loc;
     si->length = length;
-    si->refer_line = vector<int>();
+    si->refer_line = new vector<int>();
     si->type = type;
 
     return si;
@@ -57,14 +57,14 @@ void sym_insert(SymTab* t, string name, int lineno, int count, SymType type){
             func2memloc[t->name_table] += 1;
         }
         
-        si->refer_line.push_back(lineno);
+        si->refer_line->push_back(lineno);
         (*t->m)[name] = si;
     }
     else{
         // find symbol
         // insert symbol reference
         // use second to manipulate it
-        iter->second->refer_line.push_back(lineno);
+        iter->second->refer_line->push_back(lineno);
     }
 }
 
@@ -112,7 +112,7 @@ void print_symtab(SymTab *table, FILE *listing)
             fprintf(listing, " Array ");
         }
         
-        for (auto j = si->refer_line.begin(); j != si->refer_line.end(); j++)
+        for (auto j = si->refer_line->begin(); j != si->refer_line->end(); j++)
         {
             fprintf(listing, "%4d ", *j);
         }
